@@ -23,6 +23,7 @@
     "autoprefixer": "^10.4.20",
     "bcrypt": "^6.0.0",
     "flatpickr": "^4.6.13",
+    "jose": "^6.0.12",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "next": "^15.4.1",

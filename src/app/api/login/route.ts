@@ -1,8 +1,7 @@
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
 import bcrypt from 'bcrypt';
+import { generateToken } from "@/utils/auth";
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL, // atau custom config db
@@ -46,17 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Buat JWT token (rename variable untuk menghindari konflik)
-    const jwtToken = jwt.sign(
-      {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        email: user.email,
-        jabatan: user.jabatan,
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: '1d' }
-    );
+    const jwtToken = await generateToken({ username });
 
     const response = NextResponse.json({ success: true, user });
 
@@ -64,7 +53,7 @@ export async function POST(req: NextRequest) {
       name: 'token',
       value: jwtToken,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      // secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day
