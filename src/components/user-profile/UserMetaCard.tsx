@@ -7,19 +7,75 @@ import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Image from "next/image";
 import { useUser } from "@/context/UsersContext";
+import Swal from 'sweetalert2';
 
 
 export default function UserMetaCard() {
-  const { isOpen, openModal, closeModal } = useModal();
-  const { user, loading } = useUser();
   
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
-    closeModal();
+  const { isOpen, openModal, closeModal } = useModal();
+  const { user, loading } = useUser();  
+  
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault(); 
+
+    const fullname = (document.querySelector('input[name="fullname"]') as HTMLInputElement)?.value;
+    const email = (document.querySelector('input[name="email"]') as HTMLInputElement)?.value;
+    const photoInput = document.querySelector('input[name="photo"]') as HTMLInputElement;
+    const file = photoInput?.files?.[0];
+
+    if (!user?.username) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Failed!',
+        text: "Username tidak ditemukan",
+      });
+
+      return;
+    }    
+
+    const formData = new FormData();
+    formData.append("username", user.username);
+    formData.append("fullname", fullname);
+    formData.append("email", email);
+    
+    if (file) formData.append("photo", file);
+
+    try {
+      const res = await fetch("/api/users/update", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      closeModal();
+
+      if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Data Updated!',
+        });
+
+        setTimeout(() => {
+          window.location.reload(); // reload setelah 1.5 detik
+        }, 1500);
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Gagal!',
+          text: data.message || "Terjadi kesalahan",
+        });
+      }
+    } catch (err) {      
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: "Data gagal terkirim",
+      });
+      console.error(err);
+    }
   };
 
-  
 
   if (loading) {
     return (
@@ -81,6 +137,7 @@ export default function UserMetaCard() {
       </div>
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
+          <form onSubmit={handleSave}>
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
               Edit Personal Information
@@ -89,85 +146,37 @@ export default function UserMetaCard() {
               Update your details to keep your profile up-to-date.
             </p>
           </div>
-          <form className="flex flex-col">
-            <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
-              <div>
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Social Links
-                </h5>
-
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div>
-                    <Label>Facebook</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.facebook.com/PimjoHQ"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>X.com</Label>
-                    <Input type="text" defaultValue="https://x.com/PimjoHQ" />
-                  </div>
-
-                  <div>
-                    <Label>Linkedin</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://www.linkedin.com/company/pimjo"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Instagram</Label>
-                    <Input
-                      type="text"
-                      defaultValue="https://instagram.com/PimjoHQ"
-                    />
-                  </div>
+          <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
+            <div className="mt-7">
+              <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
+                Personal Information
+              </h5>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                <div className="col-span-2 lg:col-span-1">
+                  <Label>Full Name</Label>
+                  <Input type="text" defaultValue={user?.fullname} name="fullname" />
                 </div>
-              </div>
-              <div className="mt-7">
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Personal Information
-                </h5>
 
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>First Name</Label>
-                    <Input type="text" defaultValue="Musharof" />
-                  </div>
+                <div className="col-span-2 lg:col-span-1">
+                  <Label>Email Address</Label>
+                  <Input type="text" defaultValue={user?.email} name="email" />
+                </div>
 
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>Last Name</Label>
-                    <Input type="text" defaultValue="Chowdhury" />
-                  </div>
-
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>Email Address</Label>
-                    <Input type="text" defaultValue="randomuser@pimjo.com" />
-                  </div>
-
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>Phone</Label>
-                    <Input type="text" defaultValue="+09 363 398 46" />
-                  </div>
-
-                  <div className="col-span-2">
-                    <Label>Bio</Label>
-                    <Input type="text" defaultValue="Team Manager" />
-                  </div>
+                <div className="col-span-2 lg:col-span-1">
+                  <Label>Photo</Label>
+                  <Input type="file" name="photo" />
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
-                Close
-              </Button>
-              <Button size="sm" onClick={handleSave}>
-                Save Changes
-              </Button>
-            </div>
+          </div>
+          <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+            <Button size="sm" variant="outline" onClick={closeModal}>
+              Close
+            </Button>
+            <Button size="sm">
+              Save Changes
+            </Button>
+          </div>
           </form>
         </div>
       </Modal>

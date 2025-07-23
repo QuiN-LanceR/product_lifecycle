@@ -1,6 +1,7 @@
 "use client";
-import ThemeTogglerTwo from "@/components/common/ThemeTogglerTwo";
 
+import ToastProvider from '@/components/toast/ToastProvider';
+import ThemeTogglerTwo from "@/components/common/ThemeTogglerTwo";
 import { ThemeProvider } from "@/context/ThemeContext";
 import React from "react";
 import Image from "next/image";
@@ -11,7 +12,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <ToastProvider>      
       <div className="relative p-6 bg-white z-1 dark:bg-gray-900 sm:p-0">
         <ThemeProvider>
           <div className="relative flex lg:flex-row w-full h-screen justify-center flex-col dark:bg-gray-900 sm:p-0">
@@ -30,7 +31,7 @@ export default function AuthLayout({
             </div>
           </div>
         </ThemeProvider>
-      </div>
-    </>
+      </div> 
+    </ToastProvider>
   );
 }

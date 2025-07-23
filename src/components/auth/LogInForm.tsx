@@ -6,7 +6,7 @@ import Button from "@/components/ui/button/Button";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import Image from "next/image";
 
 export default function SignInForm() {
@@ -17,8 +17,8 @@ export default function SignInForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const username = (document.querySelector('input[placeholder="Username"]') as HTMLInputElement)?.value;
-    const password = (document.querySelector('input[placeholder="Enter your password"]') as HTMLInputElement)?.value;
+    const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
+    const password = (document.querySelector('input[name="password"]') as HTMLInputElement)?.value;
 
     // request reCAPTCHA token
     const token = await grecaptcha.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action: "login" });
@@ -43,11 +43,6 @@ export default function SignInForm() {
   
   return (
     <>
-      <script
-        src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
-        async
-        defer
-      ></script>
       <div className="flex flex-col flex-1 lg:w-1/2 w-full">
         <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto relative">
           <div>
@@ -80,7 +75,7 @@ export default function SignInForm() {
                     <Label>
                       Username <span className="text-error-500">*</span>{" "}
                     </Label>
-                    <Input placeholder="Username" />
+                    <Input placeholder="Username" name="username" />
                   </div>
                   <div>
                     <Label>
@@ -89,7 +84,7 @@ export default function SignInForm() {
                     <div className="relative">
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder="Enter your password" name="password" 
                       />
                       <span
                         onClick={() => setShowPassword(!showPassword)}
