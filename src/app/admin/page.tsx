@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import type { Metadata } from "next";
 import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
 import React from "react";
 import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
@@ -11,18 +10,20 @@ import DemographicCard from "@/components/ecommerce/DemographicCard";
 
 export default function Admin() {
   
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<unknown>(null);
 
   useEffect(() => {
     fetch("/api/me")
-      .then(res => res.json())
-      .then(data => {
+    .then(res => res.json())
+    .then(data => {
+      if (user && typeof user === "object") {
         if (!data.authenticated) {
           window.location.href = "/login";
         } else {
           setUser(data.user);
         }
-      });
+      }
+    });
   }, []);
 
   return (

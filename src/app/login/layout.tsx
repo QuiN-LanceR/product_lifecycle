@@ -2,7 +2,6 @@
 import ThemeTogglerTwo from "@/components/common/ThemeTogglerTwo";
 
 import { ThemeProvider } from "@/context/ThemeContext";
-import Script from "next/script";
 import React from "react";
 import Image from "next/image";
 
@@ -13,10 +12,6 @@ export default function AuthLayout({
 }) {
   return (
     <>
-      <Script
-        src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
-        strategy="beforeInteractive"
-      />
       <div className="relative p-6 bg-white z-1 dark:bg-gray-900 sm:p-0">
         <ThemeProvider>
           <div className="relative flex lg:flex-row w-full h-screen justify-center flex-col dark:bg-gray-900 sm:p-0">

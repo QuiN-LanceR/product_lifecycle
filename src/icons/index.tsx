@@ -51,6 +51,18 @@ import HorizontaLDots from "./horizontal-dots.svg";
 import ChatIcon from "./chat.svg";
 import MoreDotIcon from "./more-dot.svg";
 import BellIcon from "./bell.svg";
+import DashboardIcon from "./dashboard.svg";
+import LifecycleIcon from "./lifecycle.svg";
+import ProductIcon from "./product.svg";
+import ReportsIcon from "./reports.svg";
+import UsersIcon from "./users.svg";
+import LogoutIcon from "./logout.svg";
+import DashboardDarkIcon from "./dashboarddark.svg";
+import LifecycleDarkIcon from "./lifecycledark.svg";
+import ProductDarkIcon from "./productdark.svg";
+import ReportsDarkIcon from "./reportsdark.svg";
+import UsersDarkIcon from "./usersdark.svg";
+import LogoutDarkIcon from "./logoutdark.svg";
 
 export {
   DownloadIcon,
@@ -106,4 +118,16 @@ export {
   HorizontaLDots,
   ChevronUpIcon,
   ChatIcon,
+  DashboardIcon,
+  LifecycleIcon,
+  ProductIcon,
+  ReportsIcon,
+  UsersIcon,
+  LogoutIcon,
+  DashboardDarkIcon,
+  LifecycleDarkIcon,
+  ProductDarkIcon,
+  ReportsDarkIcon,
+  UsersDarkIcon,
+  LogoutDarkIcon,
 };

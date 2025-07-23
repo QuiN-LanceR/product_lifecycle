@@ -27,8 +27,15 @@ export async function POST(req: NextRequest) {
 
   const client = await pool.connect();
   try {
+    // Ambil semua field yang dibutuhkan termasuk fullname
     const result = await client.query(
-      `SELECT * FROM public.tbl_user WHERE username = $1 LIMIT 1`,
+        `SELECT a.username, a.password, a.fullname, a.email, a.photo, b.role, c.jabatan 
+        FROM public.tbl_user as a
+        JOIN public.tbl_role as b
+        ON a.role = b.id
+        JOIN public.tbl_jabatan as c
+        ON a.jabatan = c.id
+        WHERE username = $1 LIMIT 1`,
       [username]
     );
 
@@ -38,16 +45,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "User tidak ditemukan" }, { status: 404 });
     }
 
-    // bandingkan password (plain atau hash)
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return NextResponse.json({ success: false, message: "Password salah" }, { status: 401 });
     }
 
-    // Buat JWT token (rename variable untuk menghindari konflik)
-    const jwtToken = await generateToken({ username });
+    // Generate JWT token dengan username
+    const jwtToken = await generateToken({ username: user.username });
 
-    const response = NextResponse.json({ success: true, user });
+    // Return response tanpa password
+    const userResponse = {
+      username: user.username,
+      fullname: user.fullname,
+      email: user.email,
+      photo: user.photo,
+      role: user.role,
+      jabatan: user.jabatan
+    };
+
+    const response = NextResponse.json({ 
+      success: true, 
+      user: userResponse 
+    });
 
     response.cookies.set({
       name: 'token',
