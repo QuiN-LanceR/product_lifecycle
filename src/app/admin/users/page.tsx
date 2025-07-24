@@ -2,7 +2,7 @@
 
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import TableMasterUsers from "@/components/tables/TableMasterUsers";
+import TableMasterUsers from "@/components/tables/users/TableMasterUsers";
 import Pagination from "@/components/tables/Pagination";
 import React, { useState } from "react";
 

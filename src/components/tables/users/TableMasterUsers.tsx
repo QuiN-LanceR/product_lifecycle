@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useModal } from "../../hooks/useModal";
-import { Modal } from "../ui/modal";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { useModal } from "../../../hooks/useModal";
+import { Modal } from "../../ui/modal";
 import Button from "@/components/ui/button/Button";
 import { Pencil, Trash } from "lucide-react";
 import { useUser } from "@/context/UsersContext";
-import Input from "../form/input/InputField";
-import Label from "../form/Label";
+import Input from "../../form/input/InputField";
+import Label from "../../form/Label";
 import Image from "next/image";
 import Swal from 'sweetalert2';
 
@@ -43,23 +43,39 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
   const [users, setUsers] = useState<User[]>([]);
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<keyof User | "">("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+ 
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const currentUsers = user?.username;
   const currentRole = user?.role;
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/users/master?page=${currentPage}`);
-    const data = await res.json();
-
-    setUsers(data.users);
-    onTotalChange(Math.ceil(data.total / data.perPage));
-    setLoading(false);
-  }, [currentPage, onTotalChange]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    try {
+      const res = await fetch(
+        `/api/users/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+      );
+      const data = await res.json();
+      setUsers(data.users);
+      onTotalChange(Math.ceil(data.total / data.perPage));
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -79,6 +95,23 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
     fetchOptions();
   }, []);
 
+  const handleSort = (field: keyof User) => {
+    if (sortBy === field) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
+
+  const renderSortIcon = (field: keyof User) => {
+    if (sortBy !== field) return null;
+    return sortOrder === "asc" ? " 🔼" : " 🔽";
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleDelete = async (fullname: string, id: number) => {
     const result = await Swal.fire({
@@ -106,7 +139,7 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
 
         if (data.success) {          
           Swal.fire('Berhasil!', 'User berhasil dihapus.', 'success').then(() => {
-            fetchUsers(); // refresh data tabel
+            fetchUsers();
           });
         } else {
           Swal.fire('Gagal', data.message, 'error');
@@ -122,23 +155,29 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
+    if (!formData.get("fullname") || !formData.get("email")) {
+      Swal.fire("Gagal", "Nama dan email wajib diisi!", "warning");
+      return;
+    }
+
     const res = await fetch("/api/users/add", {
       method: "POST",
-      body: formData
+      body: formData,
     });
 
     const data = await res.json();
-
     closeModal();
     if (data.success) {
-      fetchUsers(); // Refresh data
+      fetchUsers();
       Swal.fire("Berhasil", "User berhasil ditambahkan", "success");
     } else {
       Swal.fire("Gagal", data.message || "Terjadi kesalahan", "error");
     }
   };
 
-
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
   if (loading) { 
     return (
@@ -153,71 +192,119 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
 
   return (
     <div className="overflow-x-auto">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="relative">
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Cari user..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="p-2 border rounded w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                searchInputRef.current?.focus();
+              }}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          )}
+        </div>
         <Button onClick={openModal} className="bg-blue-600 hover:bg-blue-500 text-white">
           + Add User
         </Button>
       </div>
+
+      {debouncedSearchQuery !== searchQuery && (
+        <div className="text-sm text-gray-500 mb-2">
+          Mencari &quot;{searchQuery}&quot;...
+        </div>
+      )}
+
       <table className="min-w-full table-auto border-2 border-gray-400 dark:border-white/30 rounded overflow-hidden">
         <thead>
           <tr className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-white font-semibold border-b-4 border-gray-400 dark:border-white/30">
             <th className="px-4 py-2 text-left">No</th>
             <th className="px-4 py-2 text-left">Photo</th>
-            <th className="px-4 py-2 text-left">Fullname</th>
-            <th className="px-4 py-2 text-left">Jabatan</th>
-            <th className="px-4 py-2 text-left">Email</th>
-            <th className="px-4 py-2 text-left">Username</th>
-            <th className="px-4 py-2 text-left">Role</th>
+            <th onClick={() => handleSort("fullname")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
+              Fullname {renderSortIcon("fullname")}
+            </th>
+            <th onClick={() => handleSort("jabatan")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
+              Jabatan {renderSortIcon("jabatan")}
+            </th>
+            <th onClick={() => handleSort("email")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
+              Email {renderSortIcon("email")}
+            </th>
+            <th onClick={() => handleSort("username")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
+              Username {renderSortIcon("username")}
+            </th>
+            <th onClick={() => handleSort("role")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
+              Role {renderSortIcon("role")}
+            </th>
             <th className="px-4 py-2 text-left">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {users.map((user, idx) => (
-            <tr key={user.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20">
-              <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{(currentPage - 1) * 10 + idx + 1}</td>
-              <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20 text-center">
-                {user.photo ? (
-                  <Image
-                    src={`/images/user/${user.photo}`}
-                    alt={user.fullname}
-                    className="w-10 h-10 rounded-full mx-auto"
-                    width={100}
-                    height={100}
-                  />
-                ) : (
-                  <span className="text-gray-400 italic">No Photo</span>
-                )}
-              </td>
-              <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.fullname}</td>
-              <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.jabatan}</td>
-              <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.email}</td>
-              <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.username}</td>
-              <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.role}</td>
-              <td className="px-4 py-2 border-r text-center">
-                {currentUsers !== user.username && currentRole === 'Admin' ? (
-                  <div className="flex justify-center gap-2">
-                    <Button
-                      size="sm"
-                      className="dark:text-gray-800 text-white-600 hover:text-gray-800 border-gray-800 hover:border-green-700 bg-green-600 border dark:bg-green-500 hover:bg-green-400 dark:hover:bg-green-700"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="dark:text-gray-800 text-white-600 hover:text-gray-800 border-gray-800 hover:border-red-700 bg-red-600 border dark:bg-red-500 hover:bg-red-400 dark:hover:bg-red-700"
-                      onClick={() => handleDelete(user.fullname, user.id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <span className="text-sm italic text-gray-400">No Action</span>
-                )}
+          {users.length === 0 ? (
+            <tr>
+              <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                {debouncedSearchQuery ? `Tidak ada user yang ditemukan untuk "${debouncedSearchQuery}"` : "Tidak ada data user"}
               </td>
             </tr>
-          ))}
+          ) : (
+            users.map((user, idx) => (
+              <tr key={user.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
+               hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{(currentPage - 1) * 10 + idx + 1}</td>
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20 text-center">
+                  {user.photo ? (
+                    <Image
+                      src={`/images/user/${user.photo}`}
+                      alt={user.fullname}
+                      className="w-10 h-10 rounded-full mx-auto"
+                      width={100}
+                      height={100}
+                    />
+                  ) : (
+                    <span className="text-gray-400 italic">No Photo</span>
+                  )}
+                </td>
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.fullname}</td>
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.jabatan}</td>
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.email}</td>
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.username}</td>
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.role}</td>
+                <td className="px-4 py-2 border-r text-center">
+                  {currentUsers !== user.username && currentRole === 'Admin' ? (
+                    <div className="flex justify-center gap-2">
+                      <Button
+                        size="sm"
+                        className="text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 border border-green-700 dark:border-green-300 transition-colors"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 border border-red-700 dark:border-red-300 transition-colors"
+                        onClick={() => handleDelete(user.fullname, user.id)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-sm italic text-gray-400">No Action</span>
+                  )}
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
+      
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <form onSubmit={handleSave}>
@@ -293,7 +380,6 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
           </form>
         </div>
       </Modal>
-
     </div>
   );
 }
