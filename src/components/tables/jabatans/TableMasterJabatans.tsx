@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { useModal } from "../../../hooks/useModal";
 import { Modal } from "../../ui/modal";
 import Button from "@/components/ui/button/Button";
-import EditRolesForm from "../../roles/EditRolesForm";
-import AddRolesForm from "../../roles/AddRolesForm";
+import EditJabatansForm from "../../jabatan/EditJabatansForm";
+import AddJabatansForm from "../../jabatan/AddJabatansForm";
 import { Pencil, Trash } from "lucide-react";
 import { useUser } from "@/context/UsersContext";
 import Swal from 'sweetalert2';
@@ -15,22 +15,22 @@ interface Props {
   onTotalChange: (totalPages: number) => void;
 }
 
-type Role = {
+type Jabatan = {
   id: number;
-  role: string;
+  jabatan: string;
   created_at?: string;
   updated_at?: string;
 };
 
-export default function TableMasterRoles({ currentPage, onTotalChange }: Props) {
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
+export default function TableMasterJabatans({ currentPage, onTotalChange }: Props) {
+  const [editingJabatan, setEditingJabatan] = useState<Jabatan | null>(null);
   const { isOpen, openModal, closeModal } = useModal();
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [jabatans, setJabatans] = useState<Jabatan[]>([]);
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<keyof Role | "">("");
+  const [sortBy, setSortBy] = useState<keyof Jabatan | "">("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
  
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -44,24 +44,24 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const fetchRoles = useCallback(async () => {
+  const fetchJabatans = useCallback(async () => {
     setLoading(true);
     
     try {
       const res = await fetch(
-        `/api/roles/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+        `/api/jabatans/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
       );
       const data = await res.json();
-      setRoles(data.roles);
+      setJabatans(data.jabatans);
       onTotalChange(Math.ceil(data.total / data.perPage));
     } catch (error) {
-      console.error("Error fetching roles:", error);
+      console.error("Error fetching jabatans:", error);
     } finally {
       setLoading(false);
     }
   }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
 
-  const handleSort = (field: keyof Role) => {
+  const handleSort = (field: keyof Jabatan) => {
     if (sortBy === field) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -70,19 +70,19 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
     }
   };
 
-  const renderSortIcon = (field: keyof Role) => {
+  const renderSortIcon = (field: keyof Jabatan) => {
     if (sortBy !== field) return null;
     return sortOrder === "asc" ? " 🔼" : " 🔽";
   };
 
   useEffect(() => {
-    fetchRoles();
-  }, [fetchRoles]);
+    fetchJabatans();
+  }, [fetchJabatans]);
 
-  const handleDelete = async (roleName: string, id: number) => {
+  const handleDelete = async (jabatanName: string, id: number) => {
     const result = await Swal.fire({
       title: 'Yakin ingin menghapus?',
-      text: `Role dengan nama: ${roleName} akan dihapus permanen`,
+      text: `Jabatan dengan nama: ${jabatanName} akan dihapus permanen`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -93,7 +93,7 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch("/api/roles/delete", {
+        const res = await fetch("/api/jabatans/delete", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json"
@@ -104,8 +104,8 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
         const data = await res.json();
 
         if (data.success) {          
-          Swal.fire('Berhasil!', 'Role berhasil dihapus.', 'success').then(() => {
-            fetchRoles();
+          Swal.fire('Berhasil!', 'Jabatan berhasil dihapus.', 'success').then(() => {
+            fetchJabatans();
           });
         } else {
           Swal.fire('Gagal', data.message, 'error');
@@ -143,23 +143,23 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
     );
   }
 
-  const handleEdit = (role: Role) => {
-    setEditingRole(role);
+  const handleEdit = (jabatan: Jabatan) => {
+    setEditingJabatan(jabatan);
     openModal();
   };
 
   const handleCloseEdit = () => {
-    setEditingRole(null);
+    setEditingJabatan(null);
     closeModal();
   };
 
   const handleEditSuccess = () => {
-    fetchRoles();
+    fetchJabatans();
     handleCloseEdit();
   };
 
-  const handleAddRole = () => {
-    setEditingRole(null);
+  const handleAddJabatan = () => {
+    setEditingJabatan(null);
     openModal();
   };
 
@@ -170,7 +170,7 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Cari role..."
+            placeholder="Cari jabatan..."
             value={searchQuery}
             onChange={handleSearchChange}
             className="p-2 border rounded w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -187,8 +187,8 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
             </button>
           )}
         </div>
-        <Button onClick={handleAddRole} className="bg-blue-600 hover:bg-blue-500 text-white">
-          + Add Role
+        <Button onClick={handleAddJabatan} className="bg-blue-600 hover:bg-blue-500 text-white">
+          + Add Jabatan
         </Button>
       </div>
 
@@ -202,8 +202,8 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
         <thead>
           <tr className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-white font-semibold border-b-4 border-gray-400 dark:border-white/30">
             <th className="px-4 py-2 text-left">No</th>
-            <th onClick={() => handleSort("role")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Role {renderSortIcon("role")}
+            <th onClick={() => handleSort("jabatan")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
+              Jabatan {renderSortIcon("jabatan")}
             </th>
             <th onClick={() => handleSort("created_at")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
               Created At {renderSortIcon("created_at")}
@@ -212,21 +212,21 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
           </tr>
         </thead>
         <tbody>
-          {roles.length === 0 ? (
+          {jabatans.length === 0 ? (
             <tr>
               <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
-                {debouncedSearchQuery ? `Tidak ada role yang ditemukan untuk "${debouncedSearchQuery}"` : "Tidak ada data role"}
+                {debouncedSearchQuery ? `Tidak ada jabatan yang ditemukan untuk "${debouncedSearchQuery}"` : "Tidak ada data jabatan"}
               </td>
             </tr>
           ) : (
-            roles.map((role, idx) => (
-              <tr key={role.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
+            jabatans.map((jabatan, idx) => (
+              <tr key={jabatan.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
                hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">
                 <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{(currentPage - 1) * 10 + idx + 1}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{role.role}</td>
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{jabatan.jabatan}</td>
                 <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">
-                  {role.created_at
-                    ? new Date(role.created_at).toLocaleDateString("id-ID", {
+                  {jabatan.created_at
+                    ? new Date(jabatan.created_at).toLocaleDateString("id-ID", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
@@ -240,14 +240,14 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
                       <Button
                         size="sm"
                         className="text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 border border-green-700 dark:border-green-300 transition-colors"
-                        onClick={() => handleEdit(role)}
+                        onClick={() => handleEdit(jabatan)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
                         className="text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 border border-red-700 dark:border-red-300 transition-colors"
-                        onClick={() => handleDelete(role.role, role.id)}
+                        onClick={() => handleDelete(jabatan.jabatan, jabatan.id)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
@@ -268,16 +268,16 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
           onClose={closeModal} 
           className="max-w-md p-5"
         >
-          {editingRole ? (
-            <EditRolesForm 
-              role={editingRole} 
+          {editingJabatan ? (
+            <EditJabatansForm 
+              jabatan={editingJabatan} 
               onSuccess={handleEditSuccess} 
               onCancel={handleCloseEdit} 
             />
           ) : (            
-            <AddRolesForm 
+            <AddJabatansForm 
               onSuccess={() => {
-                fetchRoles();
+                fetchJabatans();
                 closeModal();
               }} 
               onCancel={closeModal} 

@@ -53,7 +53,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Master Users", path: "/admin/users", pro: false },
       { name: "Role", path: "/admin/roles", pro: false },
-      { name: "Job Position", path: "/admin/job-position", pro: false },
+      { name: "Job Position", path: "/admin/jabatan", pro: false },
     ],
   },
   {
