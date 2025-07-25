@@ -7,8 +7,11 @@ const pool = new Pool({
 
 export async function GET() {
   try {
+    const headers = new Headers();
+    headers.append('Cache-Control', 'public, max-age=3600');
+    
     const result = await pool.query('SELECT id, role FROM tbl_role');
-    return NextResponse.json(result.rows);
+    return NextResponse.json(result.rows, { headers });
   } catch (error) {
     return NextResponse.json({ error: 'Gagal ambil data role' }, { status: 500 });
     console.log(error)

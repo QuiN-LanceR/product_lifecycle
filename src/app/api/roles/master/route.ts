@@ -11,27 +11,15 @@ export async function GET(request: Request) {
   const perPage = 10;
   const offset = (page - 1) * perPage;
 
-  // Ambil parameter sort dan search - perbaiki nama parameter
-  const sortBy = searchParams.get("sortBy") || "id"; // Ubah dari "sort_by" ke "sortBy"
-  const sortOrder = searchParams.get("sortOrder")?.toUpperCase() === "DESC" ? "DESC" : "ASC"; // Ubah dari "sort_order" ke "sortOrder"
+  // Ambil parameter sort dan search
+  const sortBy = searchParams.get("sortBy") || "id";
+  const sortOrder = searchParams.get("sortOrder")?.toUpperCase() === "DESC" ? "DESC" : "ASC";
   const search = searchParams.get("search")?.trim().toLowerCase() || "";
 
-  // Validasi kolom yang boleh disort - tambahkan prefix tabel
-  const validSortFields = ["id", "username", "fullname", "email", "role", "jabatan"];
+  // Validasi kolom yang boleh disort untuk roles
+  const validSortFields = ["id", "role", "created_at"];
   const sortField = validSortFields.includes(sortBy) ? sortBy : "id";
   
-  // Map sort field ke kolom database yang benar
-  const getSortColumn = (field: string) => {
-    switch (field) {
-      case "role":
-        return "b.role";
-      case "jabatan":
-        return "c.jabatan";
-      default:
-        return `a.${field}`;
-    }
-  };
-
   const client = await pool.connect();
   try {
     // WHERE clause & params
@@ -40,32 +28,25 @@ export async function GET(request: Request) {
 
     // Cek apakah search tidak kosong setelah trim
     if (search && search.length > 0) {
-      whereClause = `WHERE LOWER(a.username) LIKE $1 OR LOWER(a.fullname) LIKE $1 OR LOWER(a.email) LIKE $1`;
+      whereClause = `WHERE LOWER(role) LIKE $1`;
       searchParams_values.push(`%${search}%`);
     }
 
     // Total count query
     const countQuery = `
-      SELECT COUNT(*) FROM public.tbl_user as a
-      JOIN public.tbl_role as b ON a.role = b.id
-      JOIN public.tbl_jabatan as c ON a.jabatan = c.id
+      SELECT COUNT(*) FROM public.tbl_role
       ${whereClause}
     `;
     
     const countResult = await client.query(countQuery, searchParams_values);
     const total = parseInt(countResult.rows[0].count, 10);
 
-    // Main data query dengan parameter yang benar
-    const sortColumn = getSortColumn(sortField);
+    // Main data query
     let dataQuery = `
-      SELECT 
-        a.id, a.username, a.fullname, a.email, a.photo,
-        b.role, c.jabatan 
-      FROM public.tbl_user as a
-      JOIN public.tbl_role as b ON a.role = b.id
-      JOIN public.tbl_jabatan as c ON a.jabatan = c.id
+      SELECT id, role, created_at, updated_at
+      FROM public.tbl_role
       ${whereClause}
-      ORDER BY ${sortColumn} ${sortOrder}
+      ORDER BY ${sortField} ${sortOrder}
     `;
 
     // Tambahkan parameter untuk LIMIT dan OFFSET
@@ -82,11 +63,10 @@ export async function GET(request: Request) {
     const result = await client.query(dataQuery, queryParams);
 
     return NextResponse.json({
-      users: result.rows,
+      roles: result.rows,
       total,
       perPage,
       currentPage: page,
-      // Tambahkan info debug untuk membantu troubleshooting
       debug: {
         search: search || null,
         sortBy: sortField,

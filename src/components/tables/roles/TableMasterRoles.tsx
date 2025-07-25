@@ -4,11 +4,10 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { useModal } from "../../../hooks/useModal";
 import { Modal } from "../../ui/modal";
 import Button from "@/components/ui/button/Button";
-import EditUserForm from "@/components/users/EditUserForm";
-import AddUserForm from "../../users/AddUserForm";
+import EditRolesForm from "../../roles/EditRolesForm";
+import AddRolesForm from "../../roles/AddRolesForm";
 import { Pencil, Trash } from "lucide-react";
 import { useUser } from "@/context/UsersContext";
-import Image from "next/image";
 import Swal from 'sweetalert2';
 
 interface Props {
@@ -16,31 +15,25 @@ interface Props {
   onTotalChange: (totalPages: number) => void;
 }
 
-type User = {
+type Role = {
   id: number;
-  fullname: string;
-  username: string;
-  email: string;
-  photo: string;
   role: string;
-  jabatan: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
-export default function TableMasterUsers({ currentPage, onTotalChange }: Props) {
-  
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+export default function TableMasterRoles({ currentPage, onTotalChange }: Props) {
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
   const { isOpen, openModal, closeModal } = useModal();
-  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<keyof User | "">("");
+  const [sortBy, setSortBy] = useState<keyof Role | "">("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
  
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const currentUsers = user?.username;
   const currentRole = user?.role;
 
   useEffect(() => {
@@ -51,24 +44,24 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const fetchUsers = useCallback(async () => {
+  const fetchRoles = useCallback(async () => {
     setLoading(true);
     
     try {
       const res = await fetch(
-        `/api/users/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+        `/api/roles/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
       );
       const data = await res.json();
-      setUsers(data.users);
+      setRoles(data.roles);
       onTotalChange(Math.ceil(data.total / data.perPage));
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching roles:", error);
     } finally {
       setLoading(false);
     }
   }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
 
-  const handleSort = (field: keyof User) => {
+  const handleSort = (field: keyof Role) => {
     if (sortBy === field) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -77,19 +70,19 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
     }
   };
 
-  const renderSortIcon = (field: keyof User) => {
+  const renderSortIcon = (field: keyof Role) => {
     if (sortBy !== field) return null;
     return sortOrder === "asc" ? " 🔼" : " 🔽";
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchRoles();
+  }, [fetchRoles]);
 
-  const handleDelete = async (fullname: string, id: number) => {
+  const handleDelete = async (roleName: string, id: number) => {
     const result = await Swal.fire({
       title: 'Yakin ingin menghapus?',
-      text: `User dengan Nama: ${fullname} akan dihapus permanen`,
+      text: `Role dengan nama: ${roleName} akan dihapus permanen`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -100,7 +93,7 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch("/api/users/delete", {
+        const res = await fetch("/api/roles/delete", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json"
@@ -111,8 +104,8 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
         const data = await res.json();
 
         if (data.success) {          
-          Swal.fire('Berhasil!', 'User berhasil dihapus.', 'success').then(() => {
-            fetchUsers();
+          Swal.fire('Berhasil!', 'Role berhasil dihapus.', 'success').then(() => {
+            fetchRoles();
           });
         } else {
           Swal.fire('Gagal', data.message, 'error');
@@ -140,7 +133,7 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
           <div className="h-12 bg-gray-200 w-full mb-2"></div>
           {[...Array(5)].map((_, idx) => (
             <div key={idx} className="flex w-full mb-2">
-              {[...Array(8)].map((_, cellIdx) => (
+              {[...Array(4)].map((_, cellIdx) => (
                 <div key={cellIdx} className="h-12 bg-gray-100 flex-1 mx-1 rounded"></div>
               ))}
             </div>
@@ -150,34 +143,34 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
     );
   }
 
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
+  const handleEdit = (role: Role) => {
+    setEditingRole(role);
     openModal();
   };
 
   const handleCloseEdit = () => {
-    setEditingUser(null);
+    setEditingRole(null);
     closeModal();
   };
 
   const handleEditSuccess = () => {
-    fetchUsers();
+    fetchRoles();
     handleCloseEdit();
   };
 
-  const handleAddUser = () => {
-    setEditingUser(null); 
+  const handleAddRole = () => {
+    setEditingRole(null);
     openModal();
   };
 
-  return (    
+  return (
     <div className="overflow-x-auto">
       <div className="flex justify-between items-center mb-4">
         <div className="relative">
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Cari user..."
+            placeholder="Cari role..."
             value={searchQuery}
             onChange={handleSearchChange}
             className="p-2 border rounded w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -194,8 +187,8 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
             </button>
           )}
         </div>
-        <Button onClick={handleAddUser} className="bg-blue-600 hover:bg-blue-500 text-white">
-          + Add User
+        <Button onClick={handleAddRole} className="bg-blue-600 hover:bg-blue-500 text-white">
+          + Add Role
         </Button>
       </div>
 
@@ -209,69 +202,45 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
         <thead>
           <tr className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-white font-semibold border-b-4 border-gray-400 dark:border-white/30">
             <th className="px-4 py-2 text-left">No</th>
-            <th className="px-4 py-2 text-left">Photo</th>
-            <th onClick={() => handleSort("fullname")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Fullname {renderSortIcon("fullname")}
-            </th>
-            <th onClick={() => handleSort("jabatan")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Jabatan {renderSortIcon("jabatan")}
-            </th>
-            <th onClick={() => handleSort("email")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Email {renderSortIcon("email")}
-            </th>
-            <th onClick={() => handleSort("username")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Username {renderSortIcon("username")}
-            </th>
             <th onClick={() => handleSort("role")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
               Role {renderSortIcon("role")}
+            </th>
+            <th onClick={() => handleSort("created_at")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
+              Created At {renderSortIcon("created_at")}
             </th>
             <th className="px-4 py-2 text-left">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {users.length === 0 ? (
+          {roles.length === 0 ? (
             <tr>
-              <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                {debouncedSearchQuery ? `Tidak ada user yang ditemukan untuk "${debouncedSearchQuery}"` : "Tidak ada data user"}
+              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                {debouncedSearchQuery ? `Tidak ada role yang ditemukan untuk "${debouncedSearchQuery}"` : "Tidak ada data role"}
               </td>
             </tr>
           ) : (
-            users.map((user, idx) => (
-              <tr key={user.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
+            roles.map((role, idx) => (
+              <tr key={role.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
                hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">
                 <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{(currentPage - 1) * 10 + idx + 1}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20 text-center">
-                  {user.photo ? (
-                    <Image
-                      src={`/images/user/${user.photo}`}
-                      alt={user.fullname}
-                      className="w-10 h-10 rounded-full mx-auto"
-                      width={100}
-                      height={100}
-                    />
-                  ) : (
-                    <span className="text-gray-400 italic">No Photo</span>
-                  )}
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{role.role}</td>
+                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">
+                  {role.created_at ? new Date(role.created_at).toLocaleDateString() : "-"}
                 </td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.fullname}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.jabatan}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.email}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.username}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.role}</td>
                 <td className="px-4 py-2 border-r text-center">
-                  {currentUsers !== user.username && currentRole === 'Admin' ? (
+                  {currentRole === 'Admin' ? (
                     <div className="flex justify-center gap-2">
                       <Button
                         size="sm"
                         className="text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 border border-green-700 dark:border-green-300 transition-colors"
-                        onClick={() => handleEdit(user)}
+                        onClick={() => handleEdit(role)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
                         className="text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 border border-red-700 dark:border-red-300 transition-colors"
-                        onClick={() => handleDelete(user.fullname, user.id)}
+                        onClick={() => handleDelete(role.role, role.id)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
@@ -290,18 +259,18 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
         <Modal 
           isOpen={isOpen} 
           onClose={closeModal} 
-          className="max-w-3xl p-5"
+          className="max-w-md p-5"
         >
-          {editingUser ? (
-            <EditUserForm 
-              user={editingUser} 
+          {editingRole ? (
+            <EditRolesForm 
+              role={editingRole} 
               onSuccess={handleEditSuccess} 
               onCancel={handleCloseEdit} 
             />
           ) : (            
-            <AddUserForm 
+            <AddRolesForm 
               onSuccess={() => {
-                fetchUsers();
+                fetchRoles();
                 closeModal();
               }} 
               onCancel={closeModal} 
