@@ -738,3 +738,7 @@ span.flatpickr-weekday,
   opacity: 0.8;
   cursor: grabbing; /* Changes the cursor to indicate dragging */
 }
+
+.swal2-container-custom-z-index {
+  z-index: 9999999 !important; /* Lebih tinggi dari z-index modal (z-99999) */
+}
