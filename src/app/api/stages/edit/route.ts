@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from "next/server";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export async function POST(req: NextRequest) {
+  const { id, stage } = await req.json();
+
+  if (!id || !stage) {
+    return NextResponse.json(
+      { success: false, message: "Data tidak lengkap" },
+      { status: 400 }
+    );
+  }
+
+  const client = await pool.connect();
+  try {
+    // Cek apakah stage dengan nama yang sama sudah ada (selain stage yang sedang diedit)
+    const checkExisting = await client.query(
+      `SELECT id FROM tbl_stage WHERE LOWER(stage) = LOWER($1) AND id != $2`,
+      [stage, id]
+    );
+    
+    if (checkExisting.rows.length > 0) {
+      return NextResponse.json(
+        { success: false, message: "Stage dengan nama tersebut sudah ada" },
+        { status: 409 }
+      );
+    }
+    
+    await client.query(
+      `UPDATE tbl_stage SET 
+        stage = $1,
+        updated_at = NOW()
+      WHERE id = $2`,
+      [stage, id]
+    );
+
+    return NextResponse.json({ 
+      success: true,
+      message: "Stage berhasil diperbarui"
+    });
+  } catch (err) {
+    console.error("Update stage error:", err);
+    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+  } finally {
+    client.release();
+  }
+}

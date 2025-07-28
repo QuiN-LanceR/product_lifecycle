@@ -742,3 +742,8 @@ span.flatpickr-weekday,
 .swal2-container-custom-z-index {
   z-index: 9999999 !important; /* Lebih tinggi dari z-index modal (z-99999) */
 }
+
+.grecaptcha-badge {
+  z-index: 40 !important; /* Lebih rendah dari ThemeTogglerTwo yang z-50 */
+  bottom: 80px !important; /* Posisikan di atas tombol tema */
+}

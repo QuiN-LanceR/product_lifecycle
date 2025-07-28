@@ -8,78 +8,126 @@ const pool = new Pool({
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "1");
-  const perPage = 9;
-  const offset = (page - 1) * perPage;
+  const limit = parseInt(searchParams.get("limit") || "9");
+  const offset = (page - 1) * limit;
 
-  const sortBy = searchParams.get("sortBy") || "id";
+  const sortBy = searchParams.get("sortBy") || "created_at";
   const sortOrder = searchParams.get("sortOrder")?.toUpperCase() === "DESC" ? "DESC" : "ASC";
-  const search = searchParams.get("search")?.trim().toLowerCase() || "";
+  const search = searchParams.get("search")?.trim() || "";
+  const kategori = searchParams.get("kategori") || "";
+  const segmen = searchParams.get("segmen") || "";
+  const stage = searchParams.get("stage") || "";
 
-  const validSortFields = ["id", "produk", "kategori", "segmen", "stage", "harga", "tanggal_launch"];
-  const sortField = validSortFields.includes(sortBy) ? sortBy : "id";
+  const validSortFields = ["id", "produk", "kategori", "segmen", "stage", "harga", "tanggal_launch", "created_at"];
+  const sortField = validSortFields.includes(sortBy) ? sortBy : "created_at";
 
   const client = await pool.connect();
   try {
-    let whereClause = "";
-    const searchParams_values: unknown[] = [];
+    // Build WHERE conditions
+    const whereConditions = [];
+    const queryParams = [];
+    let paramIndex = 1;
 
     if (search && search.length > 0) {
-      whereClause = `WHERE LOWER(produk) LIKE $1 OR LOWER(deskripsi) LIKE $1 OR LOWER(kategori) LIKE $1 OR LOWER(segmen) LIKE $1`;
-      searchParams_values.push(`%${search}%`);
+      whereConditions.push(`(LOWER(p.produk) LIKE $${paramIndex} OR LOWER(p.deskripsi) LIKE $${paramIndex} OR LOWER(k.kategori) LIKE $${paramIndex} OR LOWER(s.segmen) LIKE $${paramIndex} OR LOWER(st.stage) LIKE $${paramIndex})`);
+      queryParams.push(`%${search.toLowerCase()}%`);
+      paramIndex++;
     }
 
+    if (kategori) {
+      whereConditions.push(`p.id_kategori = $${paramIndex}`);
+      queryParams.push(parseInt(kategori));
+      paramIndex++;
+    }
+
+    if (segmen) {
+      whereConditions.push(`p.id_segmen = $${paramIndex}`);
+      queryParams.push(parseInt(segmen));
+      paramIndex++;
+    }
+
+    if (stage) {
+      whereConditions.push(`p.id_stage = $${paramIndex}`);
+      queryParams.push(parseInt(stage));
+      paramIndex++;
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+    // Count total records
     const countQuery = `
-      SELECT COUNT(*) FROM public.tbl_produk
+      SELECT COUNT(*) 
+      FROM public.tbl_produk p
+      LEFT JOIN public.tbl_kategori k ON p.id_kategori = k.id
+      LEFT JOIN public.tbl_segmen s ON p.id_segmen = s.id
+      LEFT JOIN public.tbl_stage st ON p.id_stage = st.id
       ${whereClause}
     `;
     
-    const countResult = await client.query(countQuery, searchParams_values);
+    const countResult = await client.query(countQuery, queryParams);
     const total = parseInt(countResult.rows[0].count, 10);
+    const totalPages = Math.ceil(total / limit);
 
-    let dataQuery = `
+    // Get data with pagination
+    const dataQuery = `
       SELECT 
-        id, produk, deskripsi, kategori, segmen, stage, harga, 
-        tanggal_launch, pelanggan, created_at, updated_at
-      FROM public.tbl_produk
+        p.id, 
+        p.produk as nama_produk, 
+        p.deskripsi, 
+        p.id_kategori, k.kategori,
+        p.id_segmen, s.segmen,
+        p.id_stage, st.stage,
+        p.harga, p.tanggal_launch, 
+        p.pelanggan as customer, 
+        p.created_at, p.updated_at
+      FROM public.tbl_produk p
+      LEFT JOIN public.tbl_kategori k ON p.id_kategori = k.id
+      LEFT JOIN public.tbl_segmen s ON p.id_segmen = s.id
+      LEFT JOIN public.tbl_stage st ON p.id_stage = st.id
       ${whereClause}
-      ORDER BY ${sortField} ${sortOrder}
+      ORDER BY p.${sortField} ${sortOrder}
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
 
-    const queryParams: unknown[] = [...searchParams_values];
-    
-    if (searchParams_values.length > 0) {
-      dataQuery += ` LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
-    } else {
-      dataQuery += ` LIMIT $1 OFFSET $2`;
-    }
-    
-    queryParams.push(perPage, offset);
-
+    queryParams.push(limit, offset);
     const result = await client.query(dataQuery, queryParams);
 
-    // Ambil attachment untuk setiap produk
+    // Get attachments for each product
     const products = result.rows;
     for (const product of products) {
       const attachmentQuery = `
-        SELECT id, nama_attachment, url_attachment, size, type, created_at, updated_at
+        SELECT 
+          id, 
+          nama_attachment as nama_file, 
+          url_attachment as path_file, 
+          size as ukuran_file, 
+          type, 
+          created_at, 
+          updated_at
         FROM public.tbl_attachment_produk
         WHERE produk_id = $1
+        ORDER BY created_at DESC
       `;
       const attachmentResult = await client.query(attachmentQuery, [product.id]);
       product.attachments = attachmentResult.rows;
     }
 
     return NextResponse.json({
-      products: products,
-      total,
-      perPage,
-      currentPage: page
+      success: true,
+      data: products,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems: total,
+        itemsPerPage: limit
+      }
     });
   } catch (err) {
     console.error("Database Error:", err);
     return NextResponse.json({ 
+      success: false,
       error: "Server Error", 
-      details: err instanceof Error ? err.message : "Unknown error" 
+      message: err instanceof Error ? err.message : "Unknown error" 
     }, { status: 500 });
   } finally {
     client.release();

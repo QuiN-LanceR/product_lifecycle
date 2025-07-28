@@ -19,11 +19,11 @@ export default function AuthLayout({
             {children}
             <div className="lg:w-1/2 w-full h-full bg-brand-950 dark:bg-white/5 rounded-tl-3xl rounded-bl-3xl lg:grid bg-gradient-to-b from-[#4791F2] to-[#A2CAFF] items-center hidden">
               <Image 
-                src="/images/login/bg-login.png" 
+                src="/images/login/bg-login.svg" 
                 alt="Login Background" 
-                className="mx-auto w-auto h-auto max-w-[500px] max-h-[500px] object-contain"
-                width={500}
-                height={500}
+                className="mx-auto w-auto h-auto max-w-[600px] max-h-[600px] object-contain"
+                width={600}
+                height={600}
               />
             </div>
             <div className="fixed bottom-6 right-6 z-50 hidden sm:block">

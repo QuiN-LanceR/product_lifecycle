@@ -187,9 +187,15 @@ export default function TableMasterJabatans({ currentPage, onTotalChange }: Prop
             </button>
           )}
         </div>
-        <Button onClick={handleAddJabatan} className="bg-blue-600 hover:bg-blue-500 text-white">
-          + Add Jabatan
-        </Button>
+        
+        {currentRole === 'Admin' && (
+          <Button
+            onClick={handleAddJabatan}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            + Add Jabatan
+          </Button>
+        )}
       </div>
 
       {debouncedSearchQuery !== searchQuery && (

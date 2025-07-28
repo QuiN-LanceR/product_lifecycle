@@ -194,9 +194,15 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
             </button>
           )}
         </div>
-        <Button onClick={handleAddUser} className="bg-blue-600 hover:bg-blue-500 text-white">
-          + Add User
-        </Button>
+        
+        {currentRole === 'Admin' && (
+          <Button
+            onClick={handleAddUser}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            + Add User
+          </Button>
+        )}
       </div>
 
       {debouncedSearchQuery !== searchQuery && (

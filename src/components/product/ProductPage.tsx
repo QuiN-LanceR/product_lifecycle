@@ -1,586 +1,850 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, FileText, Edit, Trash2 } from 'lucide-react';
-import { useModal } from "@/hooks/useModal";
-import { Modal } from "@/components/ui/modal";
-import ProductForm from '@/components/product/ProductForm';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
-import { Product } from '@/components/product/type';
+import { Modal } from '../ui/modal';
+import ProductForm from './ProductForm';
 
-export default function ProductPage() {
+interface Product {
+  id: number;
+  nama_produk: string;
+  id_kategori: number;
+  id_segmen: number;
+  id_stage: number;
+  harga: number;
+  tanggal_launch: string;
+  customer: string;
+  deskripsi: string;
+  kategori?: string;
+  segmen?: string;
+  stage?: string;
+  attachments?: Attachment[];
+}
+
+interface Attachment {
+  id: number;
+  nama_attachment: string;
+  url_attachment: string;
+  ukuran_file: number;
+  type: string;
+  created_at: string;
+}
+
+interface DropdownOption {
+  id: number;
+  kategori?: string;
+  segmen?: string;
+  stage?: string;
+}
+
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
+
+const ProductPage: React.FC = () => {
+  // State management
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 9
+  });
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    kategori: '',
+    segmen: '',
+    stage: ''
+  });
+
+  // Dropdown options
+  const [kategoriOptions, setKategoriOptions] = useState<DropdownOption[]>([]);
+  const [segmenOptions, setSegmenOptions] = useState<DropdownOption[]>([]);
+  const [stageOptions, setStageOptions] = useState<DropdownOption[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewAttachmentsModal, setShowViewAttachmentsModal] = useState(false);
+  const [showAddAttachmentModal, setShowAddAttachmentModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  
-  const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
-  const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
-  const { isOpen: isViewAttachmentsModalOpen, openModal: openViewAttachmentsModal, closeModal: closeViewAttachmentsModal } = useModal();
-  const { isOpen: isAddAttachmentModalOpen, openModal: openAddAttachmentModal, closeModal: closeAddAttachmentModal } = useModal();
+  const [selectedAttachments, setSelectedAttachments] = useState<Attachment[]>([]);
 
-  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
-  const [attachmentError, setAttachmentError] = useState('');
-  const [attachmentLoading, setAttachmentLoading] = useState(false);
+  // Form loading state
+  const [formLoading, setFormLoading] = useState(false);
 
-
-  const fetchProducts = async (page = 1, search = '') => {
-    setLoading(true);
+  // Fetch dropdown options - PERBAIKAN: Menggunakan response langsung tanpa .data
+  const fetchDropdownOptions = useCallback(async () => {
+    setLoadingOptions(true);
     try {
-      const res = await fetch(`/api/produk/master?page=${page}&search=${search}`);
-      const data = await res.json();
-      
-      if (res.ok) {
-        setProducts(data.products);
-        setTotalPages(Math.ceil(data.total / data.perPage));
-        setCurrentPage(data.currentPage);
-      } else {
-        setError(data.error || 'Gagal mengambil data produk');
+      const [kategoriRes, segmenRes, stageRes] = await Promise.all([
+        fetch('/api/produk/kategoris/get'),
+        fetch('/api/produk/segmens/get'),
+        fetch('/api/produk/stages/get')
+      ]);
+
+      if (kategoriRes.ok) {
+        const kategoriData = await kategoriRes.json();
+        setKategoriOptions(kategoriData || []); // Langsung gunakan response
       }
-    } catch (err) {
-      setError('Terjadi kesalahan saat mengambil data');
-      console.error(err);
+
+      if (segmenRes.ok) {
+        const segmenData = await segmenRes.json();
+        setSegmenOptions(segmenData || []); // Langsung gunakan response
+      }
+
+      if (stageRes.ok) {
+        const stageData = await stageRes.json();
+        setStageOptions(stageData || []); // Langsung gunakan response
+      }
+    } catch (error) {
+      console.error('Error fetching dropdown options:', error);
+      Swal.fire('Gagal', 'Gagal memuat opsi filter', 'error');
+    } finally {
+      setLoadingOptions(false);
+    }
+  }, []);
+
+  // Fetch products with filters and pagination
+  const fetchProducts = useCallback(async (_page?: number) => {
+    const page = _page || currentPage;
+    setLoading(true);
+    
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: pagination.itemsPerPage.toString(),
+        search: searchTerm,
+        ...(filters.kategori && { kategori: filters.kategori }),
+        ...(filters.segmen && { segmen: filters.segmen }),
+        ...(filters.stage && { stage: filters.stage })
+      });
+
+      const response = await fetch(`/api/produk/master?${params}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setProducts(data.data || []);
+        setPagination({
+          currentPage: data.pagination?.currentPage || page,
+          totalPages: data.pagination?.totalPages || 1,
+          totalItems: data.pagination?.totalItems || 0,
+          itemsPerPage: data.pagination?.itemsPerPage || 10
+        });
+        setCurrentPage(page);
+      } else {
+        throw new Error(data.message || 'Failed to fetch products');
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      Swal.fire('Gagal', 'Gagal memuat data produk', 'error');
+      setProducts([]);
+      setPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        itemsPerPage: 10
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, filters, pagination.itemsPerPage]);
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchDropdownOptions();
+  }, [fetchDropdownOptions]);
 
   useEffect(() => {
-    fetchProducts(currentPage, searchTerm);
-  }, [currentPage, searchTerm]);
+    fetchProducts();
+  }, [fetchProducts]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Search handler
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
     setCurrentPage(1);
-    fetchProducts(1, searchTerm);
-  };
+  }, []);
 
-  const handleEdit = (product: Product) => {
+  // Filter handlers
+  const handleFilterChange = useCallback((filterType: keyof typeof filters, value: string) => {
+    setFilters(prev => ({ ...prev, [filterType]: value }));
+    setCurrentPage(1);
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilters({ kategori: '', segmen: '', stage: '' });
+    setSearchTerm('');
+    setCurrentPage(1);
+  }, []);
+
+  // CRUD handlers
+  const handleAddProduct = useCallback(() => {
+    setSelectedProduct(null);
+    setShowAddModal(true);
+  }, []);
+
+  const handleEdit = useCallback((product: Product) => {
     setSelectedProduct(product);
-    openEditModal();
-  };
+    setShowEditModal(true);
+  }, []);
 
-  const handleDelete = async (productId: string) => {
+  const handleDelete = useCallback(async (productId: number) => {
     const result = await Swal.fire({
       title: 'Apakah Anda yakin?',
-      text: "Data produk akan dihapus permanen!",
+      text: "Produk yang dihapus tidak dapat dikembalikan!",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal'
     });
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch('/api/produk/delete', {
-          method: 'DELETE',
+        const response = await fetch('/api/produk/delete', {
+          method: 'DELETE', // Ubah dari POST ke DELETE
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ id: productId })
+          body: JSON.stringify({ id: productId }),
         });
 
-        const data = await res.json();
+        const data = await response.json();
 
         if (data.success) {
-          Swal.fire('Terhapus!', 'Produk berhasil dihapus.', 'success');
-          fetchProducts(currentPage, searchTerm);
+          Swal.fire('Berhasil!', 'Produk berhasil dihapus.', 'success');
+          fetchProducts();
         } else {
-          Swal.fire('Error!', data.message, 'error');
+          throw new Error(data.message || 'Failed to delete product');
         }
-      } catch (err) {
-        console.error(err);
-        Swal.fire('Error!', 'Terjadi kesalahan saat menghapus produk.', 'error');
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        Swal.fire('Gagal', 'Gagal menghapus produk', 'error');
       }
     }
-  };
+  }, [fetchProducts]);
 
-  const handleViewAttachments = (product: Product) => {
+  const handleViewAttachments = useCallback((product: Product) => {
     setSelectedProduct(product);
-    openViewAttachmentsModal();
-  };
+    setSelectedAttachments(product.attachments || []);
+    setShowViewAttachmentsModal(true);
+  }, []);
 
-  const handleAddProduct = () => {
+  // Form submission handlers
+  const handleFormSuccess = useCallback(() => {
+    setShowAddModal(false);
+    setShowEditModal(false);
+    setShowAddAttachmentModal(false);
     setSelectedProduct(null);
-    openAddModal();
-  };
+    fetchProducts();
+  }, [fetchProducts]);
 
-  const handleFormSuccess = () => {
-    closeAddModal();
-    closeEditModal();
-    fetchProducts(currentPage, searchTerm);
-  };
+  const handleAddSubmit = useCallback(async (formData: FormData) => {
+    setFormLoading(true);
+    try {
+      const response = await fetch('/api/produk/add', {
+        method: 'POST',
+        body: formData,
+      });
 
-  const handleDeleteAttachment = async (attachmentId: string, productId: string) => {
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to add product');
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+      throw error;
+    } finally {
+      setFormLoading(false);
+    }
+  }, []);
+
+  const handleEditSubmit = useCallback(async (formData: FormData) => {
+    setFormLoading(true);
+    try {
+      const response = await fetch('/api/produk/edit', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to update product');
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    } finally {
+      setFormLoading(false);
+    }
+  }, []);
+
+  const handleSubmitAttachment = useCallback(async (formData: FormData) => {
+    try {
+      const response = await fetch('/api/attachment/add', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        Swal.fire('Berhasil', 'Attachment berhasil ditambahkan', 'success');
+        handleFormSuccess();
+      } else {
+        throw new Error(data.message || 'Failed to add attachment');
+      }
+    } catch (error) {
+      console.error('Error adding attachment:', error);
+      Swal.fire('Gagal', 'Gagal menambahkan attachment', 'error');
+    }
+  }, [handleFormSuccess]);
+
+  const handleDeleteAttachment = useCallback(async (attachmentId: number) => {
     const result = await Swal.fire({
       title: 'Apakah Anda yakin?',
-      text: "Attachment akan dihapus permanen!",
+      text: "Attachment yang dihapus tidak dapat dikembalikan!",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
       confirmButtonText: 'Ya, hapus!',
-      cancelButtonText: 'Batal',
-      customClass: {
-        container: 'swal2-container-custom-z-index'
-      }
+      cancelButtonText: 'Batal'
     });
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch('/api/attachment/delete', {
-          method: 'DELETE',
+        const response = await fetch('/api/attachment/delete', {
+          method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ id: attachmentId })
+          body: JSON.stringify({ id: attachmentId }),
         });
 
-        const data = await res.json();
+        const data = await response.json();
 
         if (data.success) {
-          Swal.fire({
-            title: 'Terhapus!',
-            text: 'Attachment berhasil dihapus.',
-            icon: 'success',
-            customClass: {
-              container: 'swal2-container-custom-z-index'
-            }
-          });
-
-          setProducts(prevProducts => {
-            return prevProducts.map(product => {
-              if (product.id === productId) {
-                return {
-                  ...product,
-                  attachments: product.attachments?.filter(att => att.id !== attachmentId) || []
-                };
-              }
-              return product;
-            });
-          });
-          
-          // Update selectedProduct juga
-          if (selectedProduct && selectedProduct.id === productId) {
-            setSelectedProduct({
-              ...selectedProduct,
-              attachments: selectedProduct.attachments?.filter(att => att.id !== attachmentId) || []
-            });
-          }
+          Swal.fire('Berhasil!', 'Attachment berhasil dihapus.', 'success');
+          setSelectedAttachments(prev => prev.filter(att => att.id !== attachmentId));
+          fetchProducts();
         } else {
-          Swal.fire({
-            title: 'Error!',
-            text: data.message || 'Gagal menghapus attachment',
-            icon: 'error',
-            customClass: {
-              container: 'swal2-container-custom-z-index'
-            }
-          });
-
+          throw new Error(data.message || 'Failed to delete attachment');
         }
-      } catch (err) {
-        console.error(err);
-        Swal.fire({
-          title: 'Error!',
-          text: 'Terjadi kesalahan pada server',
-          icon: 'error',
-          customClass: {
-            container: 'swal2-container-custom-z-index'
-          }
-        });
+      } catch (error) {
+        console.error('Error deleting attachment:', error);
+        Swal.fire('Gagal', 'Gagal menghapus attachment', 'error');
       }
     }
-  };
+  }, [fetchProducts]);
 
-  const handleAttachmentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      if (selectedFile.type !== 'application/pdf') {
-        setAttachmentError("Hanya file PDF yang diperbolehkan");
-        return;
-      }
-      setAttachmentFile(selectedFile);
-      setAttachmentError("");
+  // Pagination handlers
+  const handlePageChange = useCallback((page: number) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      fetchProducts(page);
     }
+  }, [pagination.totalPages, fetchProducts]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
   };
 
-  const handleAddAttachment = () => {
-    if (!selectedProduct) return;
-    openAddAttachmentModal();
-  };
-
-  const handleAttachmentSuccess = async () => {
-    closeAddAttachmentModal();
-    try {
-      const res = await fetch(`/api/produk/detail?id=${selectedProduct?.id}`);
-      const data = await res.json();
-      
-      if (res.ok && data.product) {
-        setSelectedProduct(data.product);
-        setProducts(prevProducts => {
-          return prevProducts.map(product => {
-            if (product.id === selectedProduct?.id) {
-              return data.product;
-            }
-            return product;
-          });
-        });
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleSubmitAttachment = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!selectedProduct || !attachmentFile) return;
-    
-    setAttachmentLoading(true);
-    setAttachmentError("");
-    
-    const formData = new FormData();
-    formData.append("id", selectedProduct.id);
-    formData.append("attachment", attachmentFile);
-    
-    try {
-      const res = await fetch("/api/attachment/add", {
-        method: "POST",
-        body: formData
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        Swal.fire({
-          title: 'Berhasil!',
-          text: 'Attachment berhasil ditambahkan',
-          icon: 'success',
-          customClass: {
-            container: 'swal2-container-custom-z-index'
-          }
-        });
-
-        handleAttachmentSuccess();
-      } else {
-        setAttachmentError(data.message || "Gagal menambahkan attachment");
-      }
-    } catch (err) {
-      console.error(err);
-      setAttachmentError("Terjadi kesalahan pada server");
-    } finally {
-      setAttachmentLoading(false);
-    }
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 text-gray-900 dark:text-gray-100">
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <form onSubmit={handleSearch} className="relative flex-1 max-w-md">
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Cari:
-            </label>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6 border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">          
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative">
               <input
-                id="search"
                 type="text"
-                placeholder="Cari produk"
+                placeholder="Cari produk..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-4 pr-10 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                onChange={handleSearch}
+                className="w-full sm:w-80 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
-              <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <Search className="h-4 w-4 text-gray-400 dark:text-gray-300" />
-              </button>
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
             </div>
-          </form>
+            
+            <button
+              onClick={handleAddProduct}
+              className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200 flex items-center gap-2"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Tambah Produk
+            </button>
+          </div>
+        </div>
 
-          <button
-            onClick={handleAddProduct}
-            className="ml-0 md:ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Tambah Produk
-          </button>
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+            <select
+              value={filters.kategori}
+              onChange={(e) => handleFilterChange('kategori', e.target.value)}
+              disabled={loadingOptions}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">Semua Kategori</option>
+              {kategoriOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.kategori}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Segmen</label>
+            <select
+              value={filters.segmen}
+              onChange={(e) => handleFilterChange('segmen', e.target.value)}
+              disabled={loadingOptions}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">Semua Segmen</option>
+              {segmenOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.segmen}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stage</label>
+            <select
+              value={filters.stage}
+              onChange={(e) => handleFilterChange('stage', e.target.value)}
+              disabled={loadingOptions}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">Semua Stage</option>
+              {stageOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.stage}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            <button
+              onClick={clearFilters}
+              className="w-full px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 transition-colors duration-200"
+            >
+              Reset Filter
+            </button>
+          </div>
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <span className="ml-3 text-gray-600 dark:text-gray-400 font-medium">Memuat data...</span>
         </div>
-      ) : error ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">Error! </strong>
-          <span className="block sm:inline">{error}</span>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <div key={product.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
-                <div className="mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {product.produk}
-                  </h3>
-                  <div className="mb-3">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      {product.kategori}
-                    </span>
-                    <div className="mt-1 flex gap-2">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                        {product.segmen}
-                      </span>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+      )}
+
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {products.length > 0 ? (
+            products.map((product) => (
+              <div key={product.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
+                {/* Product Header */}
+                <div className="p-6 flex-1">
+                  <div className="flex items-start justify-between mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 flex-1">
+                      {product.nama_produk}
+                    </h3>
+                    <div className="ml-3">
+                      {/* Status Badge berdasarkan stage */}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        product.stage?.toLowerCase().includes('growth') ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                        product.stage?.toLowerCase().includes('introduction') ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' :
+                        product.stage?.toLowerCase().includes('decline') ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' :
+                        'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                      }`}>
                         {product.stage}
                       </span>
                     </div>
                   </div>
+
+                  {/* Product Info */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-sm">
+                      <span className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full mr-2"></span>
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">Kategori:</span>
+                      <span className="ml-2 text-gray-900 dark:text-white">{product.kategori}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <span className="w-2 h-2 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></span>
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">Segmen:</span>
+                      <span className="ml-2 text-gray-900 dark:text-white">{product.segmen}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <span className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full mr-2"></span>
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">Customer:</span>
+                      <span className="ml-2 text-gray-900 dark:text-white">{product.customer}</span>
+                    </div>
+                  </div>
+
+                  {/* Price and Launch Date */}
+                  <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Harga</p>
+                      <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(product.harga)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Launch Date</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {new Date(product.tanggal_launch).toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {product.deskripsi && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">{product.deskripsi}</p>
+                    </div>
+                  )}
+
+                  {/* Attachment Count */}
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <span>{product.attachments?.length || 0} file attachment</span>
+                  </div>
                 </div>
 
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 min-h-[2.5rem]">
-                  {product.deskripsi || 'Tidak ada deskripsi'}
-                </p>
-
-                <div className="space-y-2 mb-6">
-                  <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">Tanggal Launch:</span>
-                    <span className="font-medium">Harga:</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-                    <span>{product.tanggal_launch ? new Date(product.tanggal_launch).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      }) : '-'}</span>
-                    <span>{product.harga || '-'}</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-between gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <button
-                    onClick={() => handleViewAttachments(product)}
-                    className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-1"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Attachment
-                  </button>
-                  <div className="flex gap-2">
+                {/* Action Buttons - SELALU DI BAWAH */}
+                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-100 dark:border-gray-600 mt-auto">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={() => handleEdit(product)}
-                      className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-yellow-500 dark:bg-yellow-600 text-white text-xs font-medium rounded-lg hover:bg-yellow-600 dark:hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-yellow-400 transition-colors duration-200 flex items-center justify-center"
                     >
-                      <Edit className="h-4 w-4" />
+                      <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit
                     </button>
+                    
                     <button
                       onClick={() => handleDelete(product.id)}
-                      className="px-3 py-2 text-sm font-medium text-white bg-orange-600 border border-orange-600 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 bg-red-500 dark:bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-600 dark:hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-colors duration-200 flex items-center justify-center"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Hapus
+                    </button>
+                    
+                    <button
+                      onClick={() => handleViewAttachments(product)}
+                      className="w-full px-3 py-2 bg-green-500 dark:bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-600 dark:hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 transition-colors duration-200 flex items-center justify-center"
+                    >
+                      <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                      Files
                     </button>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {products.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-gray-500 dark:text-gray-400 text-lg mb-2">Tidak ada produk ditemukan</div>
-              <div className="text-gray-400 dark:text-gray-500 text-sm">
-                {searchTerm ? 'Coba ubah kata kunci pencarian' : 'Mulai dengan menambahkan produk pertama Anda'}
+            ))
+          ) : (
+            <div className="col-span-full">
+              <div className="text-center py-12">
+                <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4m0 0l-4-4m4 4V3" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Tidak ada produk</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Mulai dengan menambahkan produk baru.</p>
+                <div className="mt-6">
+                  <button
+                    onClick={handleAddProduct}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
+                  >
+                    <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Tambah Produk
+                  </button>
+                </div>
               </div>
             </div>
           )}
+        </div>
+      )}
 
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-8">
-              <nav className="flex items-center space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-md bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-50"
-                >
-                  Prev
-                </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+      {/* Pagination */}
+      {!loading && products.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Menampilkan {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} - {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} dari {pagination.totalItems} produk
+            </div>
+            
+            <div className="flex gap-1">
+              <button
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                disabled={pagination.currentPage <= 1}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                Previous
+              </button>
+              
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                const page = i + 1;
+                return (
                   <button
                     key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 rounded-md ${currentPage === page
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-2 text-sm border-t border-b ${
+                      pagination.currentPage === page
+                        ? 'bg-blue-600 dark:bg-blue-700 text-white border-blue-600 dark:border-blue-700'
+                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
+                    } transition-colors duration-200`}
                   >
                     {page}
                   </button>
-                ))}
-                
+                );
+              })}
+              
+              <button
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                disabled={pagination.currentPage >= pagination.totalPages}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal View Attachments */}
+      <Modal
+        isOpen={showViewAttachmentsModal}
+        onClose={() => setShowViewAttachmentsModal(false)}
+        className="max-w-4xl"
+      >
+        <div className="p-6 bg-white dark:bg-gray-800">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">File Attachment</h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">{selectedProduct?.nama_produk}</p>
+            </div>
+            <button
+              onClick={() => {
+                setShowViewAttachmentsModal(false);
+                setShowAddAttachmentModal(true);
+              }}
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 flex items-center gap-2"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Tambah File
+            </button>
+          </div>
+
+          {selectedAttachments.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {selectedAttachments.map((attachment) => (
+                <div key={attachment.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-colors duration-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="h-5 w-5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        <h3 className="font-medium text-gray-900 dark:text-white truncate">{attachment.nama_attachment}</h3>
+                      </div>
+                      
+                      <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                        <p><span className="font-medium">Ukuran:</span> {formatFileSize(attachment.ukuran_file)}</p>
+                        <p><span className="font-medium">Tipe:</span> {attachment.type}</p>
+                        <p><span className="font-medium">Upload:</span> {new Date(attachment.created_at).toLocaleDateString('id-ID')}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 ml-4">
+                      <a
+                        href={attachment.url_attachment}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 bg-blue-500 dark:bg-blue-600 text-white text-xs rounded hover:bg-blue-600 dark:hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 text-center"
+                      >
+                        Lihat
+                      </a>
+                      <button
+                        onClick={() => handleDeleteAttachment(attachment.id)}
+                        className="px-3 py-1 bg-red-500 dark:bg-red-600 text-white text-xs rounded hover:bg-red-600 dark:hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-colors duration-200"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Belum ada file</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Tambahkan file attachment untuk produk ini.</p>
+              <div className="mt-6">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 rounded-md bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-50"
+                  onClick={() => {
+                    setShowViewAttachmentsModal(false);
+                    setShowAddAttachmentModal(true);
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
                 >
-                  Next
+                  <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Tambah File
                 </button>
-              </nav>
+              </div>
             </div>
           )}
-        </>
-      )}
+        </div>
+      </Modal>
 
       {/* Modal Tambah Produk */}
       <Modal
-        isOpen={isAddModalOpen}
-        onClose={closeAddModal}
-        className="max-w-3xl p-0"
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        className="max-w-4xl"
       >
-        <ProductForm 
-          onSuccess={handleFormSuccess} 
-          onCancel={closeAddModal} 
-        />
+        <div className="p-6 bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Tambah Produk Baru</h2>
+          <ProductForm
+            onSubmit={handleAddSubmit}
+            onCancel={() => setShowAddModal(false)}
+            onSuccess={handleFormSuccess}
+            isLoading={formLoading}
+          />
+        </div>
       </Modal>
 
       {/* Modal Edit Produk */}
       <Modal
-        isOpen={isEditModalOpen}
-        onClose={closeEditModal}
-        className="max-w-3xl p-0"
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        className="max-w-4xl"
       >
-        {selectedProduct && (
-          <ProductForm 
-            product={selectedProduct}
-            onSuccess={handleFormSuccess} 
-            onCancel={closeEditModal} 
+        <div className="p-6 bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Edit Produk</h2>
+          <ProductForm
+            product={selectedProduct || undefined}
+            onSubmit={handleEditSubmit}
+            onCancel={() => setShowEditModal(false)}
+            onSuccess={handleFormSuccess}
+            isLoading={formLoading}
           />
-        )}
+        </div>
       </Modal>
 
-      {/* Modal View Attachments */}
+      {/* Modal Tambah Attachment */}
       <Modal
-        isOpen={isViewAttachmentsModalOpen}
-        onClose={closeViewAttachmentsModal}
-        className="max-w-lg p-6"
+        isOpen={showAddAttachmentModal}
+        onClose={() => setShowAddAttachmentModal(false)}
+        className="max-w-md"
       >
-        {selectedProduct && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Attachment untuk {selectedProduct.produk}</h2>
-
+        <div className="p-6 bg-white dark:bg-gray-800">
+          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Tambah File Attachment</h2>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            if (selectedProduct) {
+              formData.append('id', selectedProduct.id.toString());
+            }
+            handleSubmitAttachment(formData);
+          }}>
             <div className="mb-4">
-              <button
-                onClick={handleAddAttachment}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Tambah Attachment
-              </button>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Pilih File
+              </label>
+              <input
+                type="file"
+                name="attachment"
+                required
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-200 hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif"
+              />
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Format yang didukung: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF
+              </p>
             </div>
             
-            {selectedProduct.attachments && selectedProduct.attachments.length > 0 ? (
-              <ul className="space-y-3">
-                {selectedProduct.attachments.map((attachment) => (
-                  <li key={attachment.id} className="flex items-center justify-between p-3 border rounded-md">
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500 mr-3" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                      </svg>
-                      <div className="flex-1">
-                        <a 
-                          href={attachment.url_attachment} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          {attachment.nama_attachment}
-                        </a>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {Math.round(attachment.size / 1024)} KB • {new Date(attachment.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => handleDeleteAttachment(attachment.id, selectedProduct.id)}
-                      className="ml-2 p-1 text-red-500 hover:text-red-700 rounded-full hover:bg-red-100"
-                      title="Hapus attachment"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                Tidak ada attachment untuk produk ini
-              </div>
-            )}
-            
-            <div className="mt-6 flex justify-end">
+            <div className="flex justify-end space-x-3">
               <button
-                onClick={closeViewAttachmentsModal}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                type="button"
+                onClick={() => setShowAddAttachmentModal(false)}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200"
               >
-                Tutup
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
+              >
+                Upload
               </button>
             </div>
-          </div>
-        )}
-      </Modal>
-
-      <Modal
-        isOpen={isAddAttachmentModalOpen}
-        onClose={closeAddAttachmentModal}
-        className="max-w-md p-6"
-      >
-        {selectedProduct && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Tambah Attachment</h2>
-            <form onSubmit={handleSubmitAttachment} className="space-y-4">
-              <div>
-                <label htmlFor="attachment" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  File Attachment (PDF)
-                </label>
-                <input
-                  id="attachment"
-                  name="attachment"
-                  type="file"
-                  accept="application/pdf"
-                  onChange={handleAttachmentFileChange}
-                  className="w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden dark:placeholder:text-white/30 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-                  required
-                />
-              </div>
-              
-              {attachmentError && <p className="text-red-500 text-sm">{attachmentError}</p>}
-              
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={closeAddAttachmentModal}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
-                  disabled={attachmentLoading}
-                >
-                  {attachmentLoading ? 'Menyimpan...' : 'Simpan'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+          </form>
+        </div>
       </Modal>
     </div>
   );
-}
+};
+
+export default ProductPage;

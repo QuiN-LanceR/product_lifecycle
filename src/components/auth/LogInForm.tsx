@@ -4,7 +4,7 @@ import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from 'react-hot-toast';
 import Image from "next/image";
@@ -12,7 +12,56 @@ import Image from "next/image";
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (document.querySelector('script[src*="recaptcha/api.js"]')) {
+      if (window.grecaptcha) {
+        window.grecaptcha.ready(() => {
+          setRecaptchaLoaded(true);
+          console.log('reCAPTCHA ready');
+        });
+      }
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`;
+    script.async = true;
+    script.defer = true;
+
+    script.onload = () => {
+      if (window.grecaptcha) {
+        window.grecaptcha.ready(() => {
+          setRecaptchaLoaded(true);
+          console.log('reCAPTCHA ready');
+        });
+      } else {
+        console.error('reCAPTCHA failed to load');
+      }
+    };
+
+    script.onerror = () => {
+      console.error('Failed to load reCAPTCHA script');
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      const recaptchaScript = document.querySelector('script[src*="recaptcha/api.js"]');
+      if (recaptchaScript && recaptchaScript.parentNode) {
+        recaptchaScript.parentNode.removeChild(recaptchaScript);
+      }
+      
+      const badges = document.querySelectorAll('.grecaptcha-badge');
+      badges.forEach(badge => {
+        if (badge.parentNode) {
+          badge.parentNode.removeChild(badge);
+        }
+      });
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,57 +69,71 @@ export default function SignInForm() {
     const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
     const password = (document.querySelector('input[name="password"]') as HTMLInputElement)?.value;
 
-    // request reCAPTCHA token
-    const token = await grecaptcha.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action: "login" });
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password, token }),
-    });
+    try {
+      // Pastikan grecaptcha sudah dimuat
+      if (!recaptchaLoaded || !window.grecaptcha) {
+        toast.error("reCAPTCHA belum dimuat, silakan tunggu sebentar");
+        return;
+      }
 
-    const data = await res.json();
+      // Request reCAPTCHA token
+      const token = await window.grecaptcha.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action: "login" });
+      
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password, token }),
+      });
 
-    if (res.ok && data.success) {
-      toast.success("Login berhasil!");
-      router.push("/admin");
-    } else {
-      toast.error(data.message || "Login gagal");
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        toast.success("Login berhasil!");
+        router.push("/admin");
+      } else {
+        toast.error(data.message || "Login gagal");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Terjadi kesalahan saat login");
     }
-
   };
   
   return (
     <>
-      <div className="flex flex-col flex-1 lg:w-1/2 w-full">
-        <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto relative">
+      <div className="flex flex-col flex-1 w-full px-4 sm:px-6 md:px-8 lg:w-1/2">
+        <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto relative py-6 sm:py-8 md:py-10">
           <div>
-            <div className="mb-3 sm:mb-5 text-center relative">
-              <div className="absolute -top-35 sm:-top-30 left-0">
+            <div className="mb-3 sm:mb-5 relative text-center sm:text-left">
+              <div className="sm:absolute relative mx-auto sm:mx-0 -top-20 sm:-top-30 left-0 mb-4 sm:mb-0">
                 <Image
                   src="/images/admin/plniconplus.png"
                   alt="PLC Icon"
-                  className="w-25 h-25 object-contain"
+                  className="w-20 h-20 sm:w-25 sm:h-25 object-contain"
                   width={250}
                   height={250}
                 />
               </div>
-              <h1 className="mb-2 font-bold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-                Product Lifecycle <br /> Manager
+              <h2 className="font-bold text-gray-800 text-theme-xl dark:text-gray-400">
+                Welcome to
+              </h2>
+              <h1 className="font-bold text-brand-500 text-base sm:text-title-md dark:text-brand-300 whitespace-nowrap">
+                Product Lifecycle Manager
               </h1>
-              <p className="text-sm text-gray-800 dark:text-gray-400">
-                Masuk ke dashboard anda
-              </p>
             </div>
             <div>
+              <p className="text-sm text-gray-800 dark:text-gray-400 mt-4">
+                Masuk ke dashboard anda
+              </p>
               <div className="relative py-3 sm:py-5">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
                 </div>
               </div>
               <form onSubmit={handleLogin}>
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
                     <Label>
                       Username <span className="text-error-500">*</span>{" "}

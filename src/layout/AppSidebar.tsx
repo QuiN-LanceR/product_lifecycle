@@ -38,7 +38,12 @@ const navItems: NavItem[] = [
     lightIcon: <ProductIcon />,
     darkIcon: <ProductDarkIcon />,
     name: "Product Catalog",
-    path: "/admin/product",
+    subItems: [
+      { name: "Master Product", path: "/admin/product", pro: false },
+      { name: "Kategori", path: "/admin/kategori", pro: false },
+      { name: "Segmen", path: "/admin/segmen", pro: false },
+      { name: "Stage", path: "/admin/stage", pro: false },
+    ],
   },
   {
     lightIcon: <LifecycleIcon />,
