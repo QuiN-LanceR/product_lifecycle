@@ -6,7 +6,7 @@ const pool = new Pool({
 });
 
 export async function POST(req: NextRequest) {
-  const { id, stage } = await req.json();
+  const { id, stage, icon_light, icon_dark } = await req.json();
 
   if (!id || !stage) {
     return NextResponse.json(
@@ -33,9 +33,11 @@ export async function POST(req: NextRequest) {
     await client.query(
       `UPDATE tbl_stage SET 
         stage = $1,
+        icon_light = $2,
+        icon_dark = $3,
         updated_at = NOW()
-      WHERE id = $2`,
-      [stage, id]
+      WHERE id = $4`,
+      [stage, icon_light || null, icon_dark || null, id]
     );
 
     return NextResponse.json({ 

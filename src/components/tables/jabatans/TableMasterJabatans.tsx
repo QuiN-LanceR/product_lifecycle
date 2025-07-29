@@ -6,7 +6,7 @@ import { Modal } from "../../ui/modal";
 import Button from "@/components/ui/button/Button";
 import EditJabatansForm from "../../jabatan/EditJabatansForm";
 import AddJabatansForm from "../../jabatan/AddJabatansForm";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Trash, Search, X, ChevronUp, ChevronDown } from "lucide-react";
 import { useUser } from "@/context/UsersContext";
 import Swal from 'sweetalert2';
 
@@ -70,11 +70,6 @@ export default function TableMasterJabatans({ currentPage, onTotalChange }: Prop
     }
   };
 
-  const renderSortIcon = (field: keyof Jabatan) => {
-    if (sortBy !== field) return null;
-    return sortOrder === "asc" ? " 🔼" : " 🔽";
-  };
-
   useEffect(() => {
     fetchJabatans();
   }, [fetchJabatans]);
@@ -121,28 +116,6 @@ export default function TableMasterJabatans({ currentPage, onTotalChange }: Prop
     setSearchQuery(e.target.value);
   };
 
-  if (loading) { 
-    return (
-      <div className="w-full">
-        <div className="flex justify-between items-center mb-4">
-          <div className="w-64 h-10 bg-gray-200 rounded animate-pulse"></div>
-          <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-        
-        <div className="w-full border-2 border-gray-300 rounded overflow-hidden">
-          <div className="h-12 bg-gray-200 w-full mb-2"></div>
-          {[...Array(5)].map((_, idx) => (
-            <div key={idx} className="flex w-full mb-2">
-              {[...Array(4)].map((_, cellIdx) => (
-                <div key={cellIdx} className="h-12 bg-gray-100 flex-1 mx-1 rounded"></div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const handleEdit = (jabatan: Jabatan) => {
     setEditingJabatan(jabatan);
     openModal();
@@ -163,116 +136,215 @@ export default function TableMasterJabatans({ currentPage, onTotalChange }: Prop
     openModal();
   };
 
+  const getSortIcon = (field: keyof Jabatan) => {
+    if (sortBy !== field) return <ChevronUp className="h-4 w-4 text-gray-400" />;
+    return sortOrder === "asc" ? 
+      <ChevronUp className="h-4 w-4 text-orange-500" /> : 
+      <ChevronDown className="h-4 w-4 text-orange-500" />;
+  };
+
+  const SkeletonRow = () => (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+      </td>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+      </td>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+      </td>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-center gap-2">
+          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+        </div>
+      </td>
+    </tr>
+  );
+
+  if (loading) { 
+    return (
+      <div className="space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex justify-between items-center">
+            <div className="w-64 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+            <div className="w-32 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="h-16 bg-gray-100 dark:bg-gray-700 animate-pulse"></div>
+          {[...Array(5)].map((_, idx) => (
+            <SkeletonRow key={idx} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <div className="flex justify-between items-center mb-4">
-        <div className="relative">
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Cari jabatan..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="p-2 border rounded w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                searchInputRef.current?.focus();
-              }}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Cari jabatan..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
+                         bg-white dark:bg-gray-700 text-gray-900 dark:text-white 
+                         placeholder-gray-500 dark:placeholder-gray-400
+                         focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
+                         transition-colors duration-200"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {currentRole === 'Admin' && (
+            <Button
+              onClick={handleAddJabatan}
+              className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 
+                       text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl 
+                       transform hover:scale-105 transition-all duration-200 whitespace-nowrap"
             >
-              ✕
-            </button>
+              + Add Jabatan
+            </Button>
           )}
         </div>
         
-        {currentRole === 'Admin' && (
-          <Button
-            onClick={handleAddJabatan}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            + Add Jabatan
-          </Button>
+        {debouncedSearchQuery !== searchQuery && (
+          <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            Mencari &quot;{searchQuery}&quot;...
+          </div>
         )}
       </div>
 
-      {debouncedSearchQuery !== searchQuery && (
-        <div className="text-sm text-gray-500 mb-2">
-          Mencari &quot;{searchQuery}&quot;...
-        </div>
-      )}
-
-      <table className="min-w-full table-auto border-2 border-gray-400 dark:border-white/30 rounded overflow-hidden">
-        <thead>
-          <tr className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-white font-semibold border-b-4 border-gray-400 dark:border-white/30">
-            <th className="px-4 py-2 text-left">No</th>
-            <th onClick={() => handleSort("jabatan")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Jabatan {renderSortIcon("jabatan")}
-            </th>
-            <th onClick={() => handleSort("created_at")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Created At {renderSortIcon("created_at")}
-            </th>
-            <th className="px-4 py-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jabatans.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
-                {debouncedSearchQuery ? `Tidak ada jabatan yang ditemukan untuk "${debouncedSearchQuery}"` : "Tidak ada data jabatan"}
-              </td>
-            </tr>
-          ) : (
-            jabatans.map((jabatan, idx) => (
-              <tr key={jabatan.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
-               hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{(currentPage - 1) * 10 + idx + 1}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{jabatan.jabatan}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">
-                  {jabatan.created_at
-                    ? new Date(jabatan.created_at).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })
-                    : "-"
-                  }
-                </td>
-                <td className="px-4 py-2 border-r text-center">
-                  {currentRole === 'Admin' ? (
-                    <div className="flex justify-center gap-2">
-                      <Button
-                        size="sm"
-                        className="text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 border border-green-700 dark:border-green-300 transition-colors"
-                        onClick={() => handleEdit(jabatan)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 border border-red-700 dark:border-red-300 transition-colors"
-                        onClick={() => handleDelete(jabatan.jabatan, jabatan.id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
+      {/* Table Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  No
+                </th>
+                <th 
+                  className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider 
+                           cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                  onClick={() => handleSort('jabatan')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Jabatan</span>
+                    <span className="ml-2 group-hover:text-orange-500 transition-colors">{getSortIcon('jabatan')}</span>
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider 
+                           cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Created At</span>
+                    <span className="ml-2 group-hover:text-orange-500 transition-colors">{getSortIcon('created_at')}</span>
+                  </div>
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {jabatans.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                      <Search className="h-8 w-8 text-gray-400" />
                     </div>
-                  ) : (
-                    <span className="text-sm italic text-gray-400">No Action</span>
-                  )}
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">
+                      {debouncedSearchQuery ? 
+                        `Tidak ada jabatan yang ditemukan untuk "${debouncedSearchQuery}"` : 
+                        "Tidak ada data jabatan"
+                      }
+                    </p>
+                  </div>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              jabatans.map((jabatan, idx) => (
+                <tr key={jabatan.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                    {(currentPage - 1) * 10 + idx + 1}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">
+                    {jabatan.jabatan}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {jabatan.created_at
+                      ? new Date(jabatan.created_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-"
+                    }
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    {currentRole === 'Admin' ? (
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleEdit(jabatan)}
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg 
+                                   shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                        >
+                          <Pencil size={16} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleDelete(jabatan.jabatan, jabatan.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg 
+                                   shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm italic">No Action</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+            </tbody>
+          </table>
+        </div>
+      </div>
       
       {isOpen && (
         <Modal 
           isOpen={isOpen} 
           onClose={closeModal} 
-          className="max-w-md p-5"
+          className="max-w-md p-6 bg-white dark:bg-gray-800 rounded-xl shadow-2xl"
         >
           {editingJabatan ? (
             <EditJabatansForm 

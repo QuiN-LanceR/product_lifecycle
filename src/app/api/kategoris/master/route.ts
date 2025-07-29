@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 
     // Main data query
     let dataQuery = `
-      SELECT id, kategori, created_at, updated_at
+      SELECT id, kategori as nama_kategori, icon_light, icon_dark, created_at, updated_at
       FROM public.tbl_kategori
       ${whereClause}
       ORDER BY ${sortField} ${sortOrder}

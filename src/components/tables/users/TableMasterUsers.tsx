@@ -6,7 +6,7 @@ import { Modal } from "../../ui/modal";
 import Button from "@/components/ui/button/Button";
 import EditUserForm from "@/components/users/EditUserForm";
 import AddUserForm from "../../users/AddUserForm";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Trash, Search, X, Users, Plus, Calendar, Mail, User, Shield } from "lucide-react";
 import { useUser } from "@/context/UsersContext";
 import Image from "next/image";
 import Swal from 'sweetalert2';
@@ -26,6 +26,26 @@ type User = {
   jabatan: string;
 };
 
+// Skeleton Loading Component
+const SkeletonRow = () => (
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 rounded-full"></div>
+        <div className="space-y-2">
+          <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-40"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
+        </div>
+      </div>
+      <div className="flex space-x-2">
+        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function TableMasterUsers({ currentPage, onTotalChange }: Props) {
   
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -35,28 +55,37 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<keyof User | "">("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
  
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentUsers = user?.username;
   const currentRole = user?.role;
 
+  // Optimized debouncing
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-    }, 1000);
+    }, 500); // Reduced from 1000ms to 500ms for better UX
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [searchQuery]);
 
+  // Memoized fetch function
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     
     try {
       const res = await fetch(
-        `/api/users/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+        `/api/users/master?page=${currentPage}&search=${debouncedSearchQuery}`
       );
       const data = await res.json();
       setUsers(data.users);
@@ -66,27 +95,14 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
-
-  const handleSort = (field: keyof User) => {
-    if (sortBy === field) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(field);
-      setSortOrder("asc");
-    }
-  };
-
-  const renderSortIcon = (field: keyof User) => {
-    if (sortBy !== field) return null;
-    return sortOrder === "asc" ? " 🔼" : " 🔽";
-  };
+  }, [currentPage, debouncedSearchQuery, onTotalChange]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleDelete = async (fullname: string, id: number) => {
+  // Optimized delete handler
+  const handleDelete = useCallback(async (fullname: string, id: number) => {
     const result = await Swal.fire({
       title: 'Yakin ingin menghapus?',
       text: `User dengan Nama: ${fullname} akan dihapus permanen`,
@@ -122,26 +138,36 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
         console.log(err);
       }
     }
-  };
+  }, [fetchUsers]);
   
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Optimized search change handler
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-  };
+  }, []);
 
+  // Optimized clear search
+  const clearSearch = useCallback(() => {
+    setSearchQuery("");
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
+
+  // Optimized loading state
   if (loading) { 
     return (
       <div className="w-full">
         <div className="flex justify-between items-center mb-4">
-          <div className="w-64 h-10 bg-gray-200 rounded animate-pulse"></div>
-          <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+          <div className="w-64 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="w-32 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
         </div>
         
-        <div className="w-full border-2 border-gray-300 rounded overflow-hidden">
-          <div className="h-12 bg-gray-200 w-full mb-2"></div>
+        <div className="w-full border-2 border-gray-300 dark:border-gray-700 rounded overflow-hidden">
+          <div className="h-12 bg-gray-200 dark:bg-gray-700 w-full mb-2"></div>
           {[...Array(5)].map((_, idx) => (
             <div key={idx} className="flex w-full mb-2">
               {[...Array(8)].map((_, cellIdx) => (
-                <div key={cellIdx} className="h-12 bg-gray-100 flex-1 mx-1 rounded"></div>
+                <div key={cellIdx} className="h-12 bg-gray-100 dark:bg-gray-600 flex-1 mx-1 rounded"></div>
               ))}
             </div>
           ))}
@@ -165,154 +191,199 @@ export default function TableMasterUsers({ currentPage, onTotalChange }: Props) 
     handleCloseEdit();
   };
 
-  const handleAddUser = () => {
-    setEditingUser(null); 
-    openModal();
-  };
+  return (   
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 dark:from-blue-800 dark:via-blue-900 dark:to-blue-950 rounded-2xl shadow-xl p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-white/20 rounded-xl">
+              <Users className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Master Users</h2>
+              <p className="text-blue-100">Kelola data pengguna sistem</p>
+            </div>
+          </div>
+          
+          {currentRole === 'Admin' && (
+            <Button
+              onClick={() => {
+                setEditingUser(null); 
+                openModal();
+              }}
+              className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm transition-all duration-200 flex items-center space-x-2 px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Tambah User</span>
+            </Button>
+          )}
+        </div>
+      </div>
 
-  return (    
-    <div className="overflow-x-auto">
-      <div className="flex justify-between items-center mb-4">
-        <div className="relative">
+      {/* Search Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
           <input
             ref={searchInputRef}
             type="text"
             placeholder="Cari user..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="p-2 border rounded w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-12 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all duration-200"
           />
           {searchQuery && (
             <button
-              onClick={() => {
-                setSearchQuery("");
-                searchInputRef.current?.focus();
-              }}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
-              ✕
+              <X className="h-5 w-5" />
             </button>
           )}
         </div>
         
-        {currentRole === 'Admin' && (
-          <Button
-            onClick={handleAddUser}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            + Add User
-          </Button>
+        {debouncedSearchQuery !== searchQuery && (
+          <div className="mt-3 text-sm text-blue-600 dark:text-blue-400 flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+            <span>Mencari &quot;{searchQuery}&quot;...</span>
+          </div>
         )}
       </div>
 
-      {debouncedSearchQuery !== searchQuery && (
-        <div className="text-sm text-gray-500 mb-2">
-          Mencari &quot;{searchQuery}&quot;...
+      {/* Content Section */}
+      {loading ? (
+        <div className="grid gap-4">
+          {[...Array(5)].map((_, idx) => (
+            <SkeletonRow key={idx} />
+          ))}
         </div>
-      )}
-
-      <table className="min-w-full table-auto border-2 border-gray-400 dark:border-white/30 rounded overflow-hidden">
-        <thead>
-          <tr className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-white font-semibold border-b-4 border-gray-400 dark:border-white/30">
-            <th className="px-4 py-2 text-left">No</th>
-            <th className="px-4 py-2 text-left">Photo</th>
-            <th onClick={() => handleSort("fullname")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Fullname {renderSortIcon("fullname")}
-            </th>
-            <th onClick={() => handleSort("jabatan")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Jabatan {renderSortIcon("jabatan")}
-            </th>
-            <th onClick={() => handleSort("email")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Email {renderSortIcon("email")}
-            </th>
-            <th onClick={() => handleSort("username")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Username {renderSortIcon("username")}
-            </th>
-            <th onClick={() => handleSort("role")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Role {renderSortIcon("role")}
-            </th>
-            <th className="px-4 py-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.length === 0 ? (
-            <tr>
-              <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                {debouncedSearchQuery ? `Tidak ada user yang ditemukan untuk "${debouncedSearchQuery}"` : "Tidak ada data user"}
-              </td>
-            </tr>
-          ) : (
-            users.map((user, idx) => (
-              <tr key={user.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
-               hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{(currentPage - 1) * 10 + idx + 1}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20 text-center">
-                  {user.photo ? (
-                    <Image
-                      src={`/images/user/${user.photo}`}
-                      alt={user.fullname}
-                      className="w-10 h-10 rounded-full mx-auto"
-                      width={100}
-                      height={100}
-                    />
-                  ) : (
-                    <span className="text-gray-400 italic">No Photo</span>
-                  )}
-                </td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.fullname}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.jabatan}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.email}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.username}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{user.role}</td>
-                <td className="px-4 py-2 border-r text-center">
-                  {currentUsers !== user.username && currentRole === 'Admin' ? (
-                    <div className="flex justify-center gap-2">
+      ) : users.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Users className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            {debouncedSearchQuery ? "User tidak ditemukan" : "Belum ada user"}
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400">
+            {debouncedSearchQuery 
+              ? `Tidak ada user yang cocok dengan "${debouncedSearchQuery}"`
+              : "Mulai dengan menambahkan user pertama"}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {users.map((user, idx) => (
+            <div key={user.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 group">
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      {user.photo ? (
+                        <Image
+                          src={`/images/user/${user.photo}`}
+                          alt={user.fullname}
+                          className="w-16 h-16 rounded-full object-cover border-4 border-blue-100 dark:border-blue-800 shadow-lg"
+                          width={64}
+                          height={64}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                          {user.fullname.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                        {(currentPage - 1) * 10 + idx + 1}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          {user.fullname}
+                        </h3>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4" />
+                          <span>{user.email}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4" />
+                          <span>@{user.username}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Shield className="h-4 w-4" />
+                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium">
+                            {user.role}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4" />
+                          <span>{user.jabatan}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {currentUsers !== user.username && currentRole === 'Admin' && (
+                    <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <Button
                         size="sm"
-                        className="text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 border border-green-700 dark:border-green-300 transition-colors"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                         onClick={() => handleEdit(user)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
-                        className="text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 border border-red-700 dark:border-red-300 transition-colors"
+                        className="bg-red-500 hover:bg-red-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                         onClick={() => handleDelete(user.fullname, user.id)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
                     </div>
-                  ) : (
-                    <span className="text-sm italic text-gray-400">No Action</span>
                   )}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+                  
+                  {(currentUsers === user.username || currentRole !== 'Admin') && (
+                    <div className="text-sm text-gray-400 italic">
+                      {currentUsers === user.username ? "Akun Anda" : "Tidak ada aksi"}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       
+      {/* Modal */}
       {isOpen && (
         <Modal 
           isOpen={isOpen} 
           onClose={closeModal} 
-          className="max-w-3xl p-5"
+          className="max-w-4xl"
         >
-          {editingUser ? (
-            <EditUserForm 
-              user={editingUser} 
-              onSuccess={handleEditSuccess} 
-              onCancel={handleCloseEdit} 
-            />
-          ) : (            
-            <AddUserForm 
-              onSuccess={() => {
-                fetchUsers();
-                closeModal();
-              }} 
-              onCancel={closeModal} 
-            />
-          )}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl">
+            {editingUser ? (
+              <EditUserForm 
+                user={editingUser} 
+                onSuccess={handleEditSuccess} 
+                onCancel={handleCloseEdit} 
+              />
+            ) : (            
+              <AddUserForm 
+                onSuccess={() => {
+                  fetchUsers();
+                  closeModal();
+                }} 
+                onCancel={closeModal} 
+              />
+            )}
+          </div>
         </Modal>
       )}
     </div>

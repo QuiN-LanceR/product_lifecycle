@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { useModal } from "../../../hooks/useModal";
 import { Modal } from "../../ui/modal";
 import Button from "@/components/ui/button/Button";
-import EditRolesForm from "../../roles/EditRolesForm";
-import AddRolesForm from "../../roles/AddRolesForm";
-import { Pencil, Trash } from "lucide-react";
+import EditRoleForm from "@/components/roles/EditRolesForm";
+import AddRoleForm from "@/components/roles/AddRolesForm";
+import { Pencil, Trash, Search, X, Shield, Plus, Calendar } from "lucide-react";
 import { useUser } from "@/context/UsersContext";
 import Swal from 'sweetalert2';
 
@@ -17,10 +17,30 @@ interface Props {
 
 type Role = {
   id: number;
-  role: string;
-  created_at?: string;
-  updated_at?: string;
+  nama_role: string;
+  created_at: string;
 };
+
+// Skeleton Loading Component
+const SkeletonRow = () => (
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-4">
+        <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-800 dark:to-indigo-900 rounded-xl flex items-center justify-center">
+          <div className="w-6 h-6 bg-indigo-300 dark:bg-indigo-600 rounded"></div>
+        </div>
+        <div className="space-y-2">
+          <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-32"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+        </div>
+      </div>
+      <div className="flex space-x-2">
+        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+      </div>
+    </div>
+  </div>
+);
 
 export default function TableMasterRoles({ currentPage, onTotalChange }: Props) {
   const [editingRole, setEditingRole] = useState<Role | null>(null);
@@ -30,18 +50,26 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<keyof Role | "">("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
  
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const currentRole = user?.role;
 
+  // Optimized debouncing
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-    }, 1000);
+    }, 500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [searchQuery]);
 
   const fetchRoles = useCallback(async () => {
@@ -49,7 +77,7 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
     
     try {
       const res = await fetch(
-        `/api/roles/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+        `/api/roles/master?page=${currentPage}&search=${debouncedSearchQuery}`
       );
       const data = await res.json();
       setRoles(data.roles);
@@ -59,27 +87,13 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
-
-  const handleSort = (field: keyof Role) => {
-    if (sortBy === field) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(field);
-      setSortOrder("asc");
-    }
-  };
-
-  const renderSortIcon = (field: keyof Role) => {
-    if (sortBy !== field) return null;
-    return sortOrder === "asc" ? " 🔼" : " 🔽";
-  };
+  }, [currentPage, debouncedSearchQuery, onTotalChange]);
 
   useEffect(() => {
     fetchRoles();
   }, [fetchRoles]);
 
-  const handleDelete = async (roleName: string, id: number) => {
+  const handleDelete = useCallback(async (roleName: string, id: number) => {
     const result = await Swal.fire({
       title: 'Yakin ingin menghapus?',
       text: `Role dengan nama: ${roleName} akan dihapus permanen`,
@@ -115,33 +129,18 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
         console.log(err);
       }
     }
-  };
+  }, [fetchRoles]);
   
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-  };
+  }, []);
 
-  if (loading) { 
-    return (
-      <div className="w-full">
-        <div className="flex justify-between items-center mb-4">
-          <div className="w-64 h-10 bg-gray-200 rounded animate-pulse"></div>
-          <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-        
-        <div className="w-full border-2 border-gray-300 rounded overflow-hidden">
-          <div className="h-12 bg-gray-200 w-full mb-2"></div>
-          {[...Array(5)].map((_, idx) => (
-            <div key={idx} className="flex w-full mb-2">
-              {[...Array(4)].map((_, cellIdx) => (
-                <div key={cellIdx} className="h-12 bg-gray-100 flex-1 mx-1 rounded"></div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const clearSearch = useCallback(() => {
+    setSearchQuery("");
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
 
   const handleEdit = (role: Role) => {
     setEditingRole(role);
@@ -163,132 +162,159 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
     openModal();
   };
 
-  return (
-    <div className="overflow-x-auto">
-      <div className="flex justify-between items-center mb-4">
-        <div className="relative">
+  return ( 
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 dark:from-indigo-800 dark:via-indigo-900 dark:to-indigo-950 rounded-2xl shadow-xl p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-white/20 rounded-xl">
+              <Shield className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Master Role</h2>
+              <p className="text-indigo-100">Kelola peran dan hak akses pengguna</p>
+            </div>
+          </div>
+          
+          {currentRole === 'Admin' && (
+            <Button
+              onClick={handleAddRole}
+              className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm transition-all duration-200 flex items-center space-x-2 px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Tambah Role</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Search Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
           <input
             ref={searchInputRef}
             type="text"
             placeholder="Cari role..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="p-2 border rounded w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-12 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all duration-200"
           />
           {searchQuery && (
             <button
-              onClick={() => {
-                setSearchQuery("");
-                searchInputRef.current?.focus();
-              }}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
-              ✕
+              <X className="h-5 w-5" />
             </button>
           )}
         </div>
         
-        {currentRole === 'Admin' && (
-          <Button
-            onClick={handleAddRole}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            + Add Role
-          </Button>
+        {debouncedSearchQuery !== searchQuery && (
+          <div className="mt-3 text-sm text-indigo-600 dark:text-indigo-400 flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-indigo-600 border-t-transparent"></div>
+            <span>Mencari &quot;{searchQuery}&quot;...</span>
+          </div>
         )}
       </div>
 
-      {debouncedSearchQuery !== searchQuery && (
-        <div className="text-sm text-gray-500 mb-2">
-          Mencari &quot;{searchQuery}&quot;...
+      {/* Content Section */}
+      {loading ? (
+        <div className="grid gap-4">
+          {[...Array(5)].map((_, idx) => (
+            <SkeletonRow key={idx} />
+          ))}
         </div>
-      )}
-
-      <table className="min-w-full table-auto border-2 border-gray-400 dark:border-white/30 rounded overflow-hidden">
-        <thead>
-          <tr className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-white font-semibold border-b-4 border-gray-400 dark:border-white/30">
-            <th className="px-4 py-2 text-left">No</th>
-            <th onClick={() => handleSort("role")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Role {renderSortIcon("role")}
-            </th>
-            <th onClick={() => handleSort("created_at")} className="cursor-pointer px-4 py-2 text-left hover:bg-gray-300 dark:hover:bg-gray-800">
-              Created At {renderSortIcon("created_at")}
-            </th>
-            <th className="px-4 py-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {roles.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
-                {debouncedSearchQuery ? `Tidak ada role yang ditemukan untuk "${debouncedSearchQuery}"` : "Tidak ada data role"}
-              </td>
-            </tr>
-          ) : (
-            roles.map((role, idx) => (
-              <tr key={role.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
-               hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{(currentPage - 1) * 10 + idx + 1}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{role.role}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">
-                  {role.created_at
-                    ? new Date(role.created_at).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })
-                    : "-"
-                  }
-                </td>
-                <td className="px-4 py-2 border-r text-center">
-                  {currentRole === 'Admin' ? (
-                    <div className="flex justify-center gap-2">
+      ) : roles.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-800 dark:to-indigo-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            {debouncedSearchQuery ? "Role tidak ditemukan" : "Belum ada role"}
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400">
+            {debouncedSearchQuery 
+              ? `Tidak ada role yang cocok dengan "${debouncedSearchQuery}"`
+              : "Mulai dengan menambahkan role pertama"}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {roles.map((role, idx) => (
+            <div key={role.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 group">
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                      {(currentPage - 1) * 10 + idx + 1}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Shield className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                          {role.nama_role}
+                        </h3>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                        <Calendar className="h-4 w-4" />
+                        <span>Dibuat: {new Date(role.created_at).toLocaleDateString('id-ID')}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {currentRole === 'Admin' && (
+                    <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <Button
                         size="sm"
-                        className="text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 border border-green-700 dark:border-green-300 transition-colors"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                         onClick={() => handleEdit(role)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
-                        className="text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 border border-red-700 dark:border-red-300 transition-colors"
-                        onClick={() => handleDelete(role.role, role.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                        onClick={() => handleDelete(role.nama_role, role.id)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
                     </div>
-                  ) : (
-                    <span className="text-sm italic text-gray-400">No Action</span>
                   )}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       
+      {/* Modal */}
       {isOpen && (
         <Modal 
           isOpen={isOpen} 
           onClose={closeModal} 
-          className="max-w-md p-5"
+          className="max-w-2xl"
         >
-          {editingRole ? (
-            <EditRolesForm 
-              role={editingRole} 
-              onSuccess={handleEditSuccess} 
-              onCancel={handleCloseEdit} 
-            />
-          ) : (            
-            <AddRolesForm 
-              onSuccess={() => {
-                fetchRoles();
-                closeModal();
-              }} 
-              onCancel={closeModal} 
-            />
-          )}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl">
+            {editingRole ? (
+              <EditRoleForm 
+                role={editingRole} 
+                onSuccess={handleEditSuccess} 
+                onCancel={handleCloseEdit} 
+              />
+            ) : (            
+              <AddRoleForm 
+                onSuccess={() => {
+                  fetchRoles();
+                  closeModal();
+                }} 
+                onCancel={closeModal} 
+              />
+            )}
+          </div>
         </Modal>
       )}
     </div>

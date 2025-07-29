@@ -6,9 +6,10 @@ import { Modal } from "../../ui/modal";
 import Button from "@/components/ui/button/Button";
 import EditSegmensForm from "../../segmen/EditSegmensForm";
 import AddSegmensForm from "../../segmen/AddSegmensForm";
-import { Pencil, Trash, Search, X } from "lucide-react";
+import { Pencil, Trash, Search, X, ChevronUp, ChevronDown } from "lucide-react";
 import { useUser } from "@/context/UsersContext";
 import Swal from 'sweetalert2';
+import Image from "next/image";
 
 interface Props {
   currentPage: number;
@@ -18,6 +19,8 @@ interface Props {
 type Segmen = {
   id: number;
   segmen: string;
+  icon_light?: string;
+  icon_dark?: string;
   created_at?: string;
   updated_at?: string;
 };
@@ -68,11 +71,6 @@ export default function TableMasterSegmens({ currentPage, onTotalChange }: Props
       setSortBy(field);
       setSortOrder("asc");
     }
-  };
-
-  const renderSortIcon = (field: keyof Segmen) => {
-    if (sortBy !== field) return null;
-    return sortOrder === "asc" ? " 🔼" : " 🔽";
   };
 
   useEffect(() => {
@@ -127,21 +125,38 @@ export default function TableMasterSegmens({ currentPage, onTotalChange }: Props
     }
   };
 
-  const SkeletonRow = () => (
+  const getSortIcon = (field: keyof Segmen) => {
+    if (sortBy !== field) return <ChevronUp className="h-4 w-4 text-gray-400" />;
+    return sortOrder === "asc" ? 
+      <ChevronUp className="h-4 w-4 text-blue-500" /> : 
+      <ChevronDown className="h-4 w-4 text-blue-500" />;
+  };
+
+    const SkeletonRow = () => (
     <tr className="animate-pulse">
-      <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
       </td>
-      <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
       </td>
-      <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-center">
+          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+        </div>
       </td>
-      <td className="px-4 py-2 border-r text-center">
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-center">
+          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+        </div>
+      </td>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+      </td>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex justify-center gap-2">
-          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
-          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
         </div>
       </td>
     </tr>
@@ -168,132 +183,212 @@ export default function TableMasterSegmens({ currentPage, onTotalChange }: Props
   };
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-        <div className="relative w-full sm:w-80">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Cari segmen..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
+                         bg-white dark:bg-gray-700 text-gray-900 dark:text-white 
+                         placeholder-gray-500 dark:placeholder-gray-400
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                         transition-colors duration-200"
+              />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
           </div>
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Cari segmen..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white 
-                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                     placeholder-gray-500 dark:placeholder-gray-400"
-          />
-          {searchQuery && (
-            <button
-              onClick={clearSearch}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          
+          {currentRole === 'Admin' && (
+            <Button
+              onClick={handleAddSegmen}
+              className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 
+                       text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl 
+                       transform hover:scale-105 transition-all duration-200 whitespace-nowrap"
             >
-              <X className="h-5 w-5" />
-            </button>
+              + Add Segmen
+            </Button>
           )}
         </div>
-        
-        {currentRole === 'Admin' && (
-          <Button
-            onClick={handleAddSegmen}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            + Add Segmen
-          </Button>
-        )}
       </div>
 
-      <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/20">
-        <thead className="bg-gray-100 dark:bg-gray-700">
-          <tr>
-            <th 
-              className="px-4 py-2 text-left text-gray-900 dark:text-white border-r border-gray-300 dark:border-white/20 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
-              onClick={() => handleSort("id")}
-            >
-              No{renderSortIcon("id")}
-            </th>
-            <th 
-              className="px-4 py-2 text-left text-gray-900 dark:text-white border-r border-gray-300 dark:border-white/20 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
-              onClick={() => handleSort("segmen")}
-            >
-              Nama Segmen{renderSortIcon("segmen")}
-            </th>
-            <th 
-              className="px-4 py-2 text-left text-gray-900 dark:text-white border-r border-gray-300 dark:border-white/20 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
-              onClick={() => handleSort("created_at")}
-            >
-              Created At{renderSortIcon("created_at")}
-            </th>
-            <th className="px-4 py-2 text-center text-gray-900 dark:text-white border-r border-gray-300 dark:border-white/20">
-              Action
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
-            Array.from({ length: 5 }).map((_, index) => (
-              <SkeletonRow key={index} />
-            ))
-          ) : segmens.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                {debouncedSearchQuery ? 
-                  `Tidak ada segmen yang ditemukan untuk "${debouncedSearchQuery}"` : 
-                  "Belum ada data segmen"
-                }
-              </td>
-            </tr>
-          ) : (
-            segmens.map((segmen, idx) => (
-              <tr key={segmen.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700 border-b border-gray-300 dark:border-white/20 
-               hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{(currentPage - 1) * 10 + idx + 1}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">{segmen.segmen}</td>
-                <td className="px-4 py-2 border-r border-gray-300 dark:border-white/20">
-                  {segmen.created_at
-                    ? new Date(segmen.created_at).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })
-                    : "-"
-                  }
-                </td>
-                <td className="px-4 py-2 border-r text-center">
-                  {currentRole === 'Admin' ? (
-                    <div className="flex justify-center gap-2">
-                      <Button
-                        size="sm"
-                        className="text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 border border-green-700 dark:border-green-300 transition-colors"
-                        onClick={() => handleEdit(segmen)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 border border-red-700 dark:border-red-300 transition-colors"
-                        onClick={() => handleDelete(segmen.segmen, segmen.id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
+      {/* Table Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  No
+                </th>
+                <th 
+                  className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider 
+                           cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                  onClick={() => handleSort('segmen')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Nama Segmen</span>
+                    <span className="ml-2 group-hover:text-purple-500 transition-colors">{getSortIcon('segmen')}</span>
+                  </div>
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Light Icon
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Dark Icon
+                </th>
+                <th 
+                  className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider 
+                           cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Created At</span>
+                    <span className="ml-2 group-hover:text-purple-500 transition-colors">{getSortIcon('created_at')}</span>
+                  </div>
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {loading ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <SkeletonRow key={idx} />
+              ))
+            ) : segmens.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                      <Search className="h-8 w-8 text-gray-400" />
                     </div>
-                  ) : (
-                    <span className="text-sm italic text-gray-400">No Action</span>
-                  )}
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">
+                      {debouncedSearchQuery ? 
+                        `Tidak ada segmen yang ditemukan untuk "${debouncedSearchQuery}"` : 
+                        "Belum ada data segmen"
+                      }
+                    </p>
+                  </div>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      
+            ) : (
+              segmens.map((segmen, idx) => (
+                <tr key={segmen.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                    {(currentPage - 1) * 10 + idx + 1}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">
+                    {segmen.segmen}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    {segmen.icon_light ? (
+                      <div className="flex justify-center">
+                        <Image 
+                          src={`/images/product/segmen/${segmen.icon_light}`} 
+                          alt={`${segmen.segmen} light icon`}
+                          className="w-8 h-8 object-contain"
+                          width={32}
+                          height={32}
+                        />
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-xs text-gray-500 dark:text-gray-400" style={{display: 'none'}}>
+                          N/A
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center">
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+                          N/A
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    {segmen.icon_dark ? (
+                      <div className="flex justify-center">
+                        <Image 
+                          src={`/images/product/segmen/${segmen.icon_dark}`} 
+                          alt={`${segmen.segmen} dark icon`}
+                          className="w-8 h-8 object-contain"
+                          width={32}
+                          height={32}
+                        />
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-xs text-gray-500 dark:text-gray-400" style={{display: 'none'}}>
+                          N/A
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center">
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+                          N/A
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {segmen.created_at
+                      ? new Date(segmen.created_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-"
+                    }
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    {currentRole === 'Admin' ? (
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleEdit(segmen)}
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg 
+                                   shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                        >
+                          <Pencil size={16} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleDelete(segmen.segmen, segmen.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg 
+                                   shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm italic">No Action</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {isOpen && (
         <Modal 
           isOpen={isOpen} 
           onClose={closeModal} 
-          className="max-w-md p-5"
+          className="max-w-md p-6 bg-white dark:bg-gray-800 rounded-xl shadow-2xl"
         >
           {editingSegmen ? (
             <EditSegmensForm 

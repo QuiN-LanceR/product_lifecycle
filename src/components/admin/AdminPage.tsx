@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { DashboardPages } from "@/components/dashboard/DashboardPage";
+import DashboardPages from "@/components/dashboard/DashboardPage";
 import { SegmentasiBisnis } from "@/components/dashboard/SegmentasiBisnis";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import React from "react";

@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 
     // Main data query
     let dataQuery = `
-      SELECT id, stage, created_at, updated_at
+      SELECT id, stage, icon_light, icon_dark, created_at, updated_at
       FROM public.tbl_stage
       ${whereClause}
       ORDER BY ${sortField} ${sortOrder}

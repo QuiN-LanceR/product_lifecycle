@@ -7,7 +7,7 @@ const pool = new Pool({
 
 export async function POST(req: NextRequest) {
   try {
-    const { segmen } = await req.json();
+    const { segmen, icon_light, icon_dark } = await req.json();
 
     if (!segmen) {
       return NextResponse.json(
@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
     const createdAt = new Date();
     
     await pool.query(
-      `INSERT INTO tbl_segmen (segmen, created_at)
-       VALUES ($1, $2)`,
-      [segmen, createdAt]
+      `INSERT INTO tbl_segmen (segmen, icon_light, icon_dark, created_at)
+       VALUES ($1, $2, $3, $4)`,
+      [segmen, icon_light || null, icon_dark || null, createdAt]
     );
 
     return NextResponse.json({

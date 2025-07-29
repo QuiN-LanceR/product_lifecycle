@@ -8,7 +8,8 @@ import Swal from 'sweetalert2';
 
 type Role = {
   id: number;
-  role: string;
+  nama_role: string;
+  created_at: string;
 };
 
 interface EditRoleFormProps {
@@ -19,7 +20,7 @@ interface EditRoleFormProps {
 
 export default function EditRolesForm({ role, onSuccess, onCancel }: EditRoleFormProps) {
   const [loading, setLoading] = useState(false);
-  const [roleName, setRoleName] = useState(role.role);
+  const [roleName, setRoleName] = useState(role.nama_role);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

@@ -7,7 +7,7 @@ const pool = new Pool({
 
 export async function POST(req: NextRequest) {
   try {
-    const { kategori } = await req.json();
+    const { kategori, icon_light, icon_dark } = await req.json();
 
     if (!kategori) {
       return NextResponse.json(
@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
     const createdAt = new Date();
     
     await pool.query(
-      `INSERT INTO tbl_kategori (kategori, created_at)
-       VALUES ($1, $2)`,
-      [kategori, createdAt]
+      `INSERT INTO tbl_kategori (kategori, icon_light, icon_dark, created_at)
+       VALUES ($1, $2, $3, $4)`,
+      [kategori, icon_light || null, icon_dark || null, createdAt]
     );
 
     return NextResponse.json({

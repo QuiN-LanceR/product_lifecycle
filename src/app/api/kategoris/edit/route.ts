@@ -6,7 +6,7 @@ const pool = new Pool({
 });
 
 export async function POST(req: NextRequest) {
-  const { id, kategori } = await req.json();
+  const { id, kategori, icon_light, icon_dark } = await req.json();
 
   if (!id || !kategori) {
     return NextResponse.json(
@@ -33,9 +33,11 @@ export async function POST(req: NextRequest) {
     await client.query(
       `UPDATE tbl_kategori SET 
         kategori = $1,
+        icon_light = $2,
+        icon_dark = $3,
         updated_at = NOW()
-      WHERE id = $2`,
-      [kategori, id]
+      WHERE id = $4`,
+      [kategori, icon_light || null, icon_dark || null, id]
     );
 
     return NextResponse.json({ 
