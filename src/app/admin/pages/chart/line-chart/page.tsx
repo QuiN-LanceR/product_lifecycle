@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function LineChart() {
   return (
     <div>
-      <PageBreadcrumb pageTitle="Line Chart" />
+      <PageBreadcrumb pageTitle="Line Chart" secondTitle="" />
       <div className="space-y-6">
         <ComponentCard title="Line Chart 1">
           <LineChartOne />

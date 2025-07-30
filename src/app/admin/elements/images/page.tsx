@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function Images() {
   return (
     <div>
-      <PageBreadcrumb pageTitle="Images" />
+      <PageBreadcrumb pageTitle="Images" secondTitle="" />
       <div className="space-y-5 sm:space-y-6">
         <ComponentCard title="Responsive image">
           <ResponsiveImage />

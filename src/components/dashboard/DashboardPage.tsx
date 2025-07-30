@@ -80,25 +80,25 @@ const DashboardPages = () => {
     const colors = [
       {
         // Orange - Introduction Stage
-        bg: 'bg-gradient-to-br from-[#FFB562] to-[#FF9500]',
+        bg: 'bg-gradient-to-b from-[#FFB562] to-[#FF9500]',
         darkBg: 'dark:from-[#FF9500] dark:to-[#E6850E]',
         text: 'text-white'
       },
       {
         // Green - Growth Stage  
-        bg: 'bg-gradient-to-br from-[#0EA976] to-[#006846]',
+        bg: 'bg-gradient-to-b from-[#0EA976] to-[#006846]',
         darkBg: 'dark:from-[#0EA976] dark:to-[#006846]',
         text: 'text-white'
       },
       {
         // Blue - Maturity Stage
-        bg: 'bg-gradient-to-br from-[#4791F2] to-[#0E458D]',
+        bg: 'bg-gradient-to-b from-[#4791F2] to-[#0E458D]',
         darkBg: 'dark:from-[#4791F2] dark:to-[#0E458D]',
         text: 'text-white'
       },
       {
         // Red - Decline Stage
-        bg: 'bg-gradient-to-br from-[#F85124] to-[#86270E]',
+        bg: 'bg-gradient-to-b from-[#F85124] to-[#86270E]',
         darkBg: 'dark:from-[#F85124] dark:to-[#86270E]',
         text: 'text-white'
       }
@@ -229,7 +229,7 @@ const DashboardPages = () => {
       {/* Total Products - Di Bawah dengan warna ungu sesuai gambar */}
       <div 
         onClick={handleTotalProductsClick}
-        className="bg-gradient-to-br from-[#5153FF] to-[#3D40CC] dark:from-[#5153FF] dark:to-[#3D40CC] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
+        className="bg-gradient-to-b from-[#5153FF] to-[#3D40CC] dark:from-[#5153FF] dark:to-[#3D40CC] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
       >
         <div className="flex items-center justify-between">
           <div className="space-y-2">

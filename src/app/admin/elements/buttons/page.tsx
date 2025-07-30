@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function Buttons() {
   return (
     <div>
-      <PageBreadcrumb pageTitle="Buttons" />
+      <PageBreadcrumb pageTitle="Buttons" secondTitle="" />
       <div className="space-y-5 sm:space-y-6">
         {/* Primary Button */}
         <ComponentCard title="Primary Button">

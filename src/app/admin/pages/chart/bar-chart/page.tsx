@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function page() {
   return (
     <div>
-      <PageBreadcrumb pageTitle="Bar Chart" />
+      <PageBreadcrumb pageTitle="Bar Chart" secondTitle="" />
       <div className="space-y-6">
         <ComponentCard title="Bar Chart 1">
           <BarChartOne />
