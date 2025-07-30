@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import SidebarThemeToggle from "../components/common/SidebarThemeToggle";
 import {
   DashboardIcon,
   ProductIcon,
@@ -340,7 +341,9 @@ const AppSidebar: React.FC = () => {
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+      
+      {/* Main Content Area */}
+      <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>
@@ -361,6 +364,11 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
+      </div>
+      
+      {/* Theme Toggle at Bottom */}
+      <div className="mt-auto pb-4">
+        <SidebarThemeToggle />
       </div>
     </aside>
   );

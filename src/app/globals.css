@@ -747,3 +747,37 @@ span.flatpickr-weekday,
   z-index: 40 !important; /* Lebih rendah dari ThemeTogglerTwo yang z-50 */
   bottom: 80px !important; /* Posisikan di atas tombol tema */
 }
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 640px) {
+  .chart-container {
+    min-height: 250px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .chart-container {
+    min-height: 300px;
+  }
+}
+
+@media (min-width: 769px) {
+  .chart-container {
+    min-height: 350px;
+  }
+}
+
+/* Responsive text scaling */
+@media (max-width: 640px) {
+  .chart-text-sm {
+    font-size: 0.75rem;
+  }
+  .chart-text-base {
+    font-size: 0.875rem;
+  }
+}

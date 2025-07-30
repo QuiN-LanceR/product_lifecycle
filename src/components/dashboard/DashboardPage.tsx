@@ -165,20 +165,21 @@ const DashboardPages = () => {
           Refresh
         </button>
       </div>
-
+      
       {/* Stage Cards - Grid 4 Kolom */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.stages.map((stage, index) => {
           const colors = getStageColors(index);
           return (
             <div
-              key={stage.id}
+              key={index}
+              data-item={stage.id}
               className={`${colors.bg} ${colors.darkBg} rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300`}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
                   {stage.icon_light && stage.icon_dark ? (
-                    <>
+                    <React.Fragment key={`icon-${stage.id}`}>
                       <Image
                         src={`/images/product/stage/${stage.icon_light}`}
                         alt={stage.stage}
@@ -193,7 +194,7 @@ const DashboardPages = () => {
                         height={20}
                         className="hidden dark:block"
                       />
-                    </>
+                    </React.Fragment>
                   ) : (
                     <div className="w-5 h-5 bg-white/30 rounded"></div>
                   )}

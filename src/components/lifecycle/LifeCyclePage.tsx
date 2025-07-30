@@ -1,12 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
-import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
-import MonthlyTarget  from "@/components/ecommerce/MonthlyTarget";
+import ProductDistribution from "@/components/charts/lifecycle/ProductDistribution";
+import TransitionMatrix  from "@/components/charts/lifecycle/TransitionMatrix";
+import LifecycleTimeline from "@/components/charts/lifecycle/LifecycleTimeline";
 import React from "react";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import { useWindowSize } from "@/hooks/useWindowSize";
 
-export default function AdminPage() {
+export default function LifeCyclePage() {
   
   const [user, setUser] = useState<unknown>(null);
+  const windowSize = useWindowSize();
 
   useEffect(() => {
     fetch("/api/me")
@@ -23,22 +27,21 @@ export default function AdminPage() {
   }, [user]);
 
   return (
-    <div className="space-y-6 w-full max-w-7xl mx-auto px-4">
-        <div>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90">
-            Lifecycle Analyst
-        </h1>
+    <div>
+      <PageBreadcrumb pageTitle="Lifecycle Analysis" secondTitle="" />
+      <div className="space-y-4 sm:space-y-6 w-full max-w-7xl mx-auto px-2 sm:px-4">
+        <div className="flex flex-col xl:flex-row gap-3 sm:gap-4 lg:gap-6 w-full">
+          <div className="w-full xl:w-1/2 min-w-0">
+              <ProductDistribution key={`product-${windowSize.width}`} />
+          </div>
+          <div className="w-full xl:w-1/2 min-w-0">
+              <TransitionMatrix key={`matrix-${windowSize.width}`} />
+          </div>
         </div>
-
-        <div className="flex flex-col lg:flex-row gap-4 w-full">
-        <div className="w-full lg:w-1/2">
-            <MonthlySalesChart />
+        <div className="w-full min-w-0">
+          <LifecycleTimeline key={`timeline-${windowSize.width}`} />
         </div>
-        <div className="w-full lg:w-1/2">
-            <MonthlyTarget />
-        </div>
-        </div>
-    </div>
-    );
-
+      </div>
+    </div>      
+  );
 }
