@@ -60,12 +60,12 @@ const AllProductsPage = () => {
 
   const getStageBadgeColor = (stage: string) => {
     const colors: Record<string, string> = {
-      'Introduction': 'bg-gradient-to-b from-[#FFBE62] to-[#FF9500] text-white',
-      'Growth': 'bg-gradient-to-b from-[#0EA976] to-[#006846] text-white',
-      'Maturity': 'bg-gradient-to-b from-[#4791F2] to-[#0E458D] text-white',
-      'Decline': 'bg-gradient-to-b from-[#F85124] to-[#86270E] text-white'
+      'Introduction': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+      'Growth': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+      'Maturity': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+      'Decline': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
     };
-    return colors[stage] || 'bg-gradient-to-b from-gray-500 to-gray-700';
+    return colors[stage] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
   };
 
   return (
@@ -73,7 +73,7 @@ const AllProductsPage = () => {
       <PageBreadcrumb pageTitle="All Products" secondTitle="Dashboard" />
       
       {/* Header dengan gradient ungu */}
-      <div className="bg-gradient-to-b from-[#5153FF] to-[#3D40CC] rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-[#5153FF] to-[#3D40CC] rounded-lg p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">All Products</h1>
@@ -134,7 +134,7 @@ const AllProductsPage = () => {
                         <div className="font-medium text-gray-900 dark:text-white">{product.name}</div>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium min-w-[100px] ${getStageBadgeColor(product.stage)}`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStageBadgeColor(product.stage)}`}>
                           {product.stage}
                         </span>
                       </td>
