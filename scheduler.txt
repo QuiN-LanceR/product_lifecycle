@@ -1,0 +1,203 @@
+-- ==============================================
+-- PostgreSQL Product Lifecycle Auto-Transition Scheduler
+-- Mengubah stage produk otomatis berdasarkan tanggal_stage_end
+-- ==============================================
+
+-- 1. Stored Procedure untuk Auto-Transition Product Lifecycle
+CREATE OR REPLACE FUNCTION auto_transition_product_lifecycle()
+RETURNS TABLE(
+    produk_id INTEGER,
+    produk_name VARCHAR,
+    stage_lama VARCHAR,
+    stage_baru VARCHAR,
+    message TEXT
+) 
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    rec RECORD;
+    stage_lama VARCHAR;
+    stage_baru VARCHAR;
+    stage_id_baru INTEGER;
+    interval_bulan INTEGER;
+BEGIN
+    -- Loop melalui semua produk yang tanggal_stage_end sudah lewat
+    FOR rec IN 
+        SELECT 
+            p.id,
+            p.produk,
+            p.id_stage,
+            s.stage as current_stage,
+            p.tanggal_stage_end
+        FROM tbl_produk p
+        JOIN tbl_stage s ON p.id_stage = s.id
+        WHERE p.tanggal_stage_end < CURRENT_DATE
+        AND p.id_stage IS NOT NULL
+    LOOP
+        stage_lama := rec.current_stage;
+        
+        -- Tentukan stage berikutnya berdasarkan current stage
+        CASE rec.current_stage
+            WHEN 'Introduction' THEN
+                SELECT id INTO stage_id_baru FROM tbl_stage WHERE stage = 'Growth';
+                stage_baru := 'Growth';
+            WHEN 'Growth' THEN
+                SELECT id INTO stage_id_baru FROM tbl_stage WHERE stage = 'Maturity';
+                stage_baru := 'Maturity';
+            WHEN 'Maturity' THEN
+                SELECT id INTO stage_id_baru FROM tbl_stage WHERE stage = 'Decline';
+                stage_baru := 'Decline';
+            WHEN 'Decline' THEN
+                -- Produk sudah di tahap akhir, tidak ada transisi lagi
+                stage_baru := 'Decline';
+                stage_id_baru := rec.id_stage;
+        END CASE;
+        
+        -- Jika ada stage berikutnya (bukan Decline ke Decline)
+        IF stage_lama != stage_baru THEN
+            -- Ambil interval untuk stage baru
+            SELECT "interval" INTO interval_bulan 
+            FROM tbl_interval_stage 
+            WHERE id_stage = stage_id_baru;
+            
+            -- Jika tidak ada interval, gunakan default 6 bulan
+            IF interval_bulan IS NULL THEN
+                interval_bulan := 6;
+            END IF;
+            
+            -- Update produk ke stage baru
+            UPDATE tbl_produk 
+            SET 
+                id_stage = stage_id_baru,
+                tanggal_stage_start = CURRENT_DATE,
+                tanggal_stage_end = CURRENT_DATE + (interval_bulan || ' months')::INTERVAL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = rec.id;
+            
+            -- Simpan ke history
+            INSERT INTO tbl_stage_histori (
+                id_produk,
+                stage_previous,
+                stage_now,
+                catatan,
+                created_at,
+                updated_at
+            ) VALUES (
+                rec.id,
+                stage_lama,
+                stage_baru,
+                'Auto-transition by scheduler on ' || CURRENT_DATE::TEXT,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP
+            );
+            
+            -- Return hasil untuk monitoring
+            RETURN QUERY SELECT 
+                rec.id,
+                rec.produk,
+                stage_lama,
+                stage_baru,
+                ('Successfully transitioned from ' || stage_lama || ' to ' || stage_baru)::TEXT;
+                
+        ELSE
+            -- Produk sudah di tahap akhir
+            RETURN QUERY SELECT 
+                rec.id,
+                rec.produk,
+                stage_lama,
+                stage_baru,
+                'Product already in final stage (Decline)'::TEXT;
+        END IF;
+    END LOOP;
+    
+    RETURN;
+END;
+$$;
+
+-- 2. Procedure untuk menjalankan scheduler secara manual (untuk testing)
+CREATE OR REPLACE FUNCTION run_lifecycle_scheduler()
+RETURNS TEXT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    result_count INTEGER := 0;
+    rec RECORD;
+BEGIN
+    -- Hitung berapa produk yang akan di-update
+    SELECT COUNT(*) INTO result_count
+    FROM tbl_produk p
+    JOIN tbl_stage s ON p.id_stage = s.id
+    WHERE p.tanggal_stage_end < CURRENT_DATE
+    AND p.id_stage IS NOT NULL
+    AND s.stage != 'Decline';
+    
+    -- Jalankan auto transition
+    PERFORM auto_transition_product_lifecycle();
+    
+    -- Log hasil
+    INSERT INTO tbl_stage_histori (
+        id_produk,
+        stage_previous,
+        stage_now,
+        catatan,
+        created_at,
+        updated_at
+    ) VALUES (
+        0, -- id_produk 0 untuk sistem log
+        'SYSTEM',
+        'SCHEDULER_RUN',
+        'Scheduler executed at ' || CURRENT_TIMESTAMP || '. Processed ' || result_count || ' products.',
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    );
+    
+    RETURN 'Scheduler completed. Processed ' || result_count || ' products.';
+END;
+$$;
+
+-- 3. View untuk monitoring hasil scheduler
+CREATE OR REPLACE VIEW v_recent_transitions AS
+SELECT 
+    h.id,
+    h.id_produk,
+    p.produk,
+    h.stage_previous,
+    h.stage_now,
+    h.catatan,
+    h.created_at,
+    CASE 
+        WHEN h.id_produk = 0 THEN 'SYSTEM LOG'
+        ELSE 'PRODUCT TRANSITION'
+    END as transition_type
+FROM tbl_stage_histori h
+LEFT JOIN tbl_produk p ON h.id_produk = p.id
+ORDER BY h.created_at DESC;
+
+-- 4. Query untuk cek produk yang akan di-transition
+CREATE OR REPLACE VIEW v_products_due_transition AS
+SELECT 
+    p.id,
+    p.produk,
+    s.stage as current_stage,
+    p.tanggal_stage_start,
+    p.tanggal_stage_end,
+    CURRENT_DATE - p.tanggal_stage_end as days_overdue,
+    CASE s.stage
+        WHEN 'Introduction' THEN 'Growth'
+        WHEN 'Growth' THEN 'Maturity'
+        WHEN 'Maturity' THEN 'Decline'
+        WHEN 'Decline' THEN 'No Further Transition'
+    END as next_stage
+FROM tbl_produk p
+JOIN tbl_stage s ON p.id_stage = s.id
+WHERE p.tanggal_stage_end < CURRENT_DATE
+AND p.id_stage IS NOT NULL
+ORDER BY p.tanggal_stage_end ASC;
+
+-- 5. Manual execution untuk testing
+-- SELECT * FROM auto_transition_product_lifecycle();
+-- SELECT run_lifecycle_scheduler();
+
+-- 6. Monitoring queries
+-- SELECT * FROM v_recent_transitions LIMIT 20;
+-- SELECT * FROM v_products_due_transition;
