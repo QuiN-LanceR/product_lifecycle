@@ -4,6 +4,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface StageData {
   id: number;
@@ -19,6 +20,7 @@ interface DashboardStats {
 }
 
 const DashboardPages = () => {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     total: 0,
     stages: []
@@ -52,6 +54,17 @@ const DashboardPages = () => {
     } finally {
       setLoading(false);
     }
+  }; 
+
+  // Tambahkan function untuk handle stage click
+  const handleStageClick = (id: number) => {
+    const stageSlug = id;
+    console.log(stageSlug)
+    router.push(`/admin/dashboard/${stageSlug}`);
+  };
+  
+  const handleTotalProductsClick = () => {
+    router.push('/admin/dashboard/all');
   };
 
   useEffect(() => {
@@ -172,9 +185,9 @@ const DashboardPages = () => {
           const colors = getStageColors(index);
           return (
             <div
-              key={index}
-              data-item={stage.id}
-              className={`${colors.bg} ${colors.darkBg} rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300`}
+              key={stage.id}
+              onClick={() => handleStageClick(stage.id)}
+              className={`${colors.bg} ${colors.darkBg} rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105`}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
@@ -214,7 +227,10 @@ const DashboardPages = () => {
       </div>
 
       {/* Total Products - Di Bawah dengan warna ungu sesuai gambar */}
-      <div className="bg-gradient-to-br from-[#5153FF] to-[#3D40CC] dark:from-[#5153FF] dark:to-[#3D40CC] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
+      <div 
+        onClick={handleTotalProductsClick}
+        className="bg-gradient-to-br from-[#5153FF] to-[#3D40CC] dark:from-[#5153FF] dark:to-[#3D40CC] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
+      >
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <h3 className="text-4xl font-bold text-white">

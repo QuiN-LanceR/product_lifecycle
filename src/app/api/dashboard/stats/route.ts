@@ -11,6 +11,7 @@ export async function GET() {
     // Query untuk menghitung produk berdasarkan stage
     const statsQuery = `
         SELECT 
+            st.id,
             st.stage,
             st.icon_light,
             st.icon_dark,
@@ -38,6 +39,7 @@ export async function GET() {
 
     // Inisialisasi stages data untuk ikon
     const stages: Array<{
+      id: string;
       stage: string;
       icon_light: string;
       icon_dark: string;
@@ -53,6 +55,7 @@ export async function GET() {
       
       // Tambahkan data stage untuk ikon
       stages.push({
+        id: row.id,
         stage: row.stage,
         icon_light: row.icon_light,
         icon_dark: row.icon_dark,
