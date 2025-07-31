@@ -60,7 +60,7 @@ export default function EditJabatansForm({ jabatan, onSuccess, onCancel }: EditJ
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Edit Jabatan</h2>
+      <h2 className="text-xl dark:text-white font-semibold mb-4">Edit Jabatan</h2>
       
       <form onSubmit={handleSubmit}>
         <div className="mb-4">

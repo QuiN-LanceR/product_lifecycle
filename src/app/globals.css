@@ -781,3 +781,106 @@ span.flatpickr-weekday,
     font-size: 0.875rem;
   }
 }
+
+/* Enhanced scrollbar untuk tabel yang selalu visible */
+.overflow-x-auto {
+  overflow-x: auto !important;
+  overflow-y: visible;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 14px;
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 8px;
+  margin: 0 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #cbd5e0 0%, #a0aec0 100%);
+  border-radius: 8px;
+  border: 2px solid #f7fafc;
+  min-width: 30px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #a0aec0 0%, #718096 100%);
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #718096 0%, #4a5568 100%);
+}
+
+/* Dark mode scrollbar */
+.dark .overflow-x-auto {
+  scrollbar-color: #4a5568 #2d3748;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-track {
+  background: #2d3748;
+  border: 1px solid #4a5568;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
+  border: 2px solid #2d3748;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #718096 0%, #4a5568 100%);
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #a0aec0 0%, #718096 100%);
+}
+
+/* Enhanced sticky columns dengan shadow yang lebih halus */
+.sticky {
+  position: sticky;
+  z-index: 10;
+}
+
+.sticky.left-0 {
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.sticky.right-0 {
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.dark .sticky.left-0 {
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.25);
+}
+
+.dark .sticky.right-0 {
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Responsive table container */
+@media (max-width: 768px) {
+  .overflow-x-auto {
+    border-radius: 0;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 12px;
+  }
+}
+
+/* Text wrapping utilities */
+.break-words {
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Smooth transitions untuk hover effects */
+.transition-colors {
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}

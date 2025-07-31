@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw, AlertCircle, Package } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
 
 interface Segment {
   id: number;
@@ -12,9 +13,11 @@ interface Segment {
 }
 
 export const SegmentasiBisnis = () => {
+  const router = useRouter();
   const [segments, setSegments] = useState<Segment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
 
   const fetchSegments = async () => {
     try {
@@ -43,6 +46,10 @@ export const SegmentasiBisnis = () => {
     } finally {
       setLoading(false);
     }
+  };  
+
+  const handleSegmentClick = (id: number) => {
+    router.push(`/admin/dashboard/segment/${id}`);
   };
 
   useEffect(() => {
@@ -134,10 +141,15 @@ export const SegmentasiBisnis = () => {
       {segments && segments.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
           {segments.map((segment) => (
-            <div key={segment.id} className="relative w-full max-w-[175px]">
+            <div 
+              key={segment.id} 
+              className="relative w-full max-w-[175px] cursor-pointer transform hover:scale-105 transition-all duration-300"
+              onClick={() => handleSegmentClick(segment.id)}
+            >
+              {/* Main box dengan background yang responsive untuk dark mode */}
               {/* Main box dengan background yang responsive untuk dark mode */}
               <div 
-                className="relative p-4 overflow-hidden transition-colors duration-200 bg-gray-100 dark:bg-gray-600"
+                className="relative p-4 overflow-hidden transition-colors duration-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500"
                 style={{
                   clipPath: 'path("M0 129V24C0 10.7452 10.7452 0 24 0H151C164.255 0 175 10.7451 175 24V81.1644C175 93.9889 164.604 104.385 151.779 104.385C138.955 104.385 128.559 114.781 128.559 127.606V129C128.559 142.255 117.813 153 104.559 153H24C10.7452 153 0 142.255 0 129Z")',
                   width: '100%',

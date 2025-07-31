@@ -54,7 +54,7 @@ export default function AddRolesForm({ onSuccess, onCancel }: AddRoleFormProps) 
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Tambah Role Baru</h2>
+      <h2 className="text-xl dark:text-white font-semibold mb-4">Tambah Role Baru</h2>
       
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
