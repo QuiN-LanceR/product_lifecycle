@@ -261,7 +261,15 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
                         <Calendar className="h-4 w-4" />
-                        <span>Dibuat: {new Date(role.created_at).toLocaleDateString('id-ID')}</span>
+                        <span>Dibuat: {role.created_at
+                            ? new Date(role.created_at).toLocaleDateString("id-ID", {
+                                day: "numeric",
+                                month: "long", 
+                                year: "numeric",
+                              })
+                            : "-"
+                          }
+                        </span>
                       </div>
                     </div>
                   </div>

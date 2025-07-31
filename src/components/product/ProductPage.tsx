@@ -475,6 +475,28 @@ const ProductPage: React.FC = () => {
     if (file) {
       setSelectedFile(file);
     }
+  };  
+
+  // Tambahkan fungsi untuk styling badge stage
+  const getStageBadgeColor = (stage: string) => {
+    const colors: Record<string, string> = {
+      'Introduction': 'bg-gradient-to-b from-[#FFBE62] to-[#FF9500] text-white',
+      'Growth': 'bg-gradient-to-b from-[#0EA976] to-[#006846] text-white',
+      'Maturity': 'bg-gradient-to-b from-[#4791F2] to-[#0E458D] text-white',
+      'Decline': 'bg-gradient-to-b from-[#F85124] to-[#86270E] text-white'
+    };
+    return colors[stage] || 'bg-gradient-to-b from-gray-500 to-gray-700 text-white';
+  };
+
+  // Tambahkan fungsi untuk styling badge segmen
+  const getSegmentBadgeColor = (segment: string) => {
+    const colors: Record<string, string> = {
+      'Pelayanan Pelanggan': 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200',
+      'Korporat': 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+      'Distribusi': 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200',
+      'EP & Pembangkit': 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
+    };
+    return colors[segment] || 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200';
   };
 
   return (
@@ -607,12 +629,7 @@ const ProductPage: React.FC = () => {
                     </h3>
                     <div className="ml-3">
                       {/* Status Badge berdasarkan stage */}
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        product.stage?.toLowerCase().includes('growth') ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
-                        product.stage?.toLowerCase().includes('introduction') ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' :
-                        product.stage?.toLowerCase().includes('decline') ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' :
-                        'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                      }`}>
+                      <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium min-w-[100px] ${getStageBadgeColor(product.stage || '')}`}>
                         {product.stage}
                       </span>
                     </div>
@@ -628,7 +645,9 @@ const ProductPage: React.FC = () => {
                     <div className="flex items-center text-sm">
                       <span className="w-2 h-2 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></span>
                       <span className="text-gray-600 dark:text-gray-400 font-medium">Segmen:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{product.segmen}</span>
+                      <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSegmentBadgeColor(product.segmen || '')}`}>
+                        {product.segmen}
+                      </span>
                     </div>
                     <div className="flex items-center text-sm">
                       <span className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full mr-2"></span>

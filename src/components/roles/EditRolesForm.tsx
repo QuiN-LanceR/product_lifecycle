@@ -61,7 +61,7 @@ export default function EditRolesForm({ role, onSuccess, onCancel }: EditRoleFor
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Edit Role</h2>
+      <h2 className="text-xl dark:text-white font-semibold mb-4">Edit Role</h2>
       
       <form onSubmit={handleSubmit}>
         <div className="mb-4">

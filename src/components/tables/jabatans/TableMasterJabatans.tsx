@@ -145,19 +145,19 @@ export default function TableMasterJabatans({ currentPage, onTotalChange }: Prop
 
   const SkeletonRow = () => (
     <tr className="animate-pulse">
-      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8"></div>
       </td>
-      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
       </td>
-      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
       </td>
-      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+      <td className="px-6 py-4 whitespace-nowrap text-center">
         <div className="flex justify-center gap-2">
-          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
-          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </td>
     </tr>
@@ -171,13 +171,6 @@ export default function TableMasterJabatans({ currentPage, onTotalChange }: Prop
             <div className="w-64 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg animate-pulse"></div>
             <div className="w-32 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg animate-pulse"></div>
           </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="h-16 bg-gray-100 dark:bg-gray-700 animate-pulse"></div>
-          {[...Array(5)].map((_, idx) => (
-            <SkeletonRow key={idx} />
-          ))}
         </div>
       </div>
     );
@@ -273,7 +266,11 @@ export default function TableMasterJabatans({ currentPage, onTotalChange }: Prop
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {jabatans.length === 0 ? (
+            {loading ? (
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <SkeletonRow key={idx} />
+                ))
+              ) : jabatans.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center justify-center space-y-3">

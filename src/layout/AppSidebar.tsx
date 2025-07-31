@@ -44,6 +44,8 @@ const navItems: NavItem[] = [
       { name: "Kategori", path: "/admin/kategori", pro: false },
       { name: "Segmen", path: "/admin/segmen", pro: false },
       { name: "Stage", path: "/admin/stage", pro: false },
+      { name: "Interval Stage", path: "/admin/interval", pro: false },
+      { name: "Dev History", path: "/admin/devhistori", pro: false },
     ],
   },
   {
