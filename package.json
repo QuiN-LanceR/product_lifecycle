@@ -44,7 +44,8 @@
     "react-hot-toast": "^2.5.2",
     "sweetalert2": "^11.6.13",
     "swiper": "^11.2.0",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -60,6 +61,7 @@
     "@types/react-dom": "^19",
     "@types/react-google-recaptcha": "^2.1.9",
     "@types/react-transition-group": "^4.4.12",
+    "@types/xlsx": "^0.0.35",
     "eslint": "^9",
     "eslint-config-next": "15.1.3",
     "postcss": "^8",
