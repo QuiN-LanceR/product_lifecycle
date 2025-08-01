@@ -68,8 +68,8 @@ const navItems: NavItem[] = [
   {
     lightIcon: <ReportsIcon />,
     darkIcon: <ReportsDarkIcon />,
-    name: "Report",
-    path: "/admin/report",
+    name: "Monitoring",
+    path: "/admin/monitoring",
   },
 ];
 

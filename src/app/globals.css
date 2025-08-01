@@ -744,8 +744,8 @@ span.flatpickr-weekday,
 }
 
 .grecaptcha-badge {
-  z-index: 40 !important; /* Lebih rendah dari ThemeTogglerTwo yang z-50 */
-  bottom: 80px !important; /* Posisikan di atas tombol tema */
+  z-index: 40 !important;
+  bottom: 120px !important; 
 }
 
 .chart-container {
@@ -757,6 +757,10 @@ span.flatpickr-weekday,
 @media (max-width: 640px) {
   .chart-container {
     min-height: 250px;
+  }
+
+  .grecaptcha-badge {
+    bottom: 100px !important;
   }
 }
 

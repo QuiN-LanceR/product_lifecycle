@@ -110,37 +110,49 @@ const DashboardPages = () => {
   if (loading) {
     return (
       <div className="p-6 space-y-6">
+        {/* Header Skeleton */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
+          <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
+          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg w-24 animate-pulse"></div>
         </div>
         
-        {/* Stage Cards Skeleton */}
+        {/* Stage Cards Skeleton - Improved */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, index) => (
-            <div key={`skeleton-${index}`} className="rounded-2xl p-6 shadow-lg animate-pulse bg-gray-200 dark:bg-gray-700 h-32">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 rounded-lg bg-gray-300 dark:bg-gray-600">
-                  <div className="w-5 h-5 bg-gray-400 dark:bg-gray-500 rounded"></div>
+          {[...Array(4)].map((_, index) => {
+            // Simulasi warna yang berbeda untuk setiap card
+            const colors = [
+              'bg-gradient-to-b from-blue-200 to-blue-300 dark:from-blue-700 dark:to-blue-800',
+              'bg-gradient-to-b from-green-200 to-green-300 dark:from-green-700 dark:to-green-800', 
+              'bg-gradient-to-b from-yellow-200 to-yellow-300 dark:from-yellow-700 dark:to-yellow-800',
+              'bg-gradient-to-b from-red-200 to-red-300 dark:from-red-700 dark:to-red-800'
+            ];
+            
+            return (
+              <div key={`skeleton-${index}`} className={`rounded-2xl p-6 shadow-lg animate-pulse ${colors[index]} h-32`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 rounded-lg bg-white/30">
+                    <div className="w-5 h-5 bg-white/50 rounded"></div>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-8 bg-white/40 rounded w-12"></div>
+                  <div className="h-4 bg-white/30 rounded w-20"></div>
                 </div>
               </div>
-              <div className="space-y-1">
-                <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-12"></div>
-                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         
-        {/* Total Products Skeleton */}
-        <div className="rounded-2xl p-8 shadow-lg animate-pulse bg-gray-200 dark:bg-gray-700">
+        {/* Total Products Skeleton - Improved */}
+        <div className="bg-gradient-to-b from-purple-200 to-purple-300 dark:from-purple-700 dark:to-purple-800 rounded-2xl p-8 shadow-lg animate-pulse">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
-              <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-32"></div>
-              <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-24"></div>
+              <div className="h-10 bg-white/40 rounded w-16"></div>
+              <div className="h-5 bg-white/30 rounded w-32"></div>
+              <div className="h-4 bg-white/20 rounded w-24"></div>
             </div>
-            <div className="p-4 bg-gray-300 dark:bg-gray-600 rounded-2xl">
-              <div className="w-12 h-12 bg-gray-400 dark:bg-gray-500 rounded"></div>
+            <div className="p-4 bg-white/30 rounded-2xl">
+              <div className="w-12 h-12 bg-white/40 rounded"></div>
             </div>
           </div>
         </div>
