@@ -499,6 +499,70 @@ const ProductPage: React.FC = () => {
     return colors[segment] || 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200';
   };
 
+  const ProductCardSkeleton = () => (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col animate-pulse">
+      {/* Product Header Skeleton */}
+      <div className="p-6 flex-1">
+        <div className="flex items-start justify-between mb-4">
+          <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+          <div className="ml-3">
+            <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded-full w-24"></div>
+          </div>
+        </div>
+
+        {/* Product Info Skeleton */}
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-blue-300 dark:bg-blue-600 rounded-full mr-2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+          </div>
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-purple-300 dark:bg-purple-600 rounded-full mr-2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
+          </div>
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-green-300 dark:bg-green-600 rounded-full mr-2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-36"></div>
+          </div>
+        </div>
+
+        {/* Price and Launch Date Skeleton */}
+        <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div>
+            <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-12 mb-1"></div>
+            <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+          </div>
+          <div className="text-right">
+            <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-16 mb-1"></div>
+            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+          </div>
+        </div>
+
+        {/* Description Skeleton */}
+        <div className="mb-4 space-y-2">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/5"></div>
+        </div>
+
+        {/* Attachment Count Skeleton */}
+        <div className="flex items-center mb-4">
+          <div className="h-4 w-4 bg-gray-300 dark:bg-gray-600 rounded mr-2"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+        </div>
+      </div>
+
+      {/* Action Buttons Skeleton */}
+      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-100 dark:border-gray-600 mt-auto">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+          <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+          <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       {/* Header */}
@@ -528,7 +592,6 @@ const ProductPage: React.FC = () => {
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Tambah Produk
               </button>
               
               <button
@@ -538,7 +601,6 @@ const ProductPage: React.FC = () => {
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                 </svg>
-                Import Excel
               </button>
             </div>
           </div>
@@ -610,9 +672,10 @@ const ProductPage: React.FC = () => {
 
       {/* Loading State */}
       {loading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 dark:border-blue-400"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-400 font-medium">Memuat data...</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {[...Array(9)].map((_, index) => (
+            <ProductCardSkeleton key={index} />
+          ))}
         </div>
       )}
 

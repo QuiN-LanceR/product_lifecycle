@@ -31,16 +31,50 @@ const SkeletonRow = () => (
   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 rounded-full"></div>
+        {/* Avatar Skeleton dengan nomor */}
+        <div className="relative">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 rounded-full"></div>
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-200 to-blue-300 dark:from-blue-700 dark:to-blue-800 rounded-full"></div>
+        </div>
+        
+        {/* User Info Skeleton */}
         <div className="space-y-2">
-          <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-40"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
+          {/* Name with icon */}
+          <div className="flex items-center space-x-2">
+            <div className="h-5 w-5 bg-blue-200 dark:bg-blue-700 rounded"></div>
+            <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-40"></div>
+          </div>
+          
+          {/* Grid info skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* Email */}
+            <div className="flex items-center space-x-2">
+              <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+            </div>
+            {/* Username */}
+            <div className="flex items-center space-x-2">
+              <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+            </div>
+            {/* Role */}
+            <div className="flex items-center space-x-2">
+              <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-6 bg-blue-100 dark:bg-blue-900 rounded-full w-16"></div>
+            </div>
+            {/* Jabatan */}
+            <div className="flex items-center space-x-2">
+              <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="flex space-x-2">
-        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
-        <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+      
+      {/* Action Buttons Skeleton */}
+      <div className="flex items-center space-x-2">
+        <div className="w-8 h-8 bg-emerald-200 dark:bg-emerald-700 rounded-lg"></div>
+        <div className="w-8 h-8 bg-red-200 dark:bg-red-700 rounded-lg"></div>
       </div>
     </div>
   </div>

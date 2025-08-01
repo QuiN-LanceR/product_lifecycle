@@ -50,17 +50,20 @@ export default function SignInForm() {
     document.head.appendChild(script);
 
     return () => {
-      const recaptchaScript = document.querySelector('script[src*="recaptcha/api.js"]');
-      if (recaptchaScript && recaptchaScript.parentNode) {
-        recaptchaScript.parentNode.removeChild(recaptchaScript);
-      }
-      
-      const badges = document.querySelectorAll('.grecaptcha-badge');
-      badges.forEach(badge => {
-        if (badge.parentNode) {
-          badge.parentNode.removeChild(badge);
+      // Cleanup yang lebih efisien
+      const cleanup = () => {
+        const recaptchaScript = document.querySelector('script[src*="recaptcha/api.js"]');
+        if (recaptchaScript?.parentNode) {
+          recaptchaScript.parentNode.removeChild(recaptchaScript);
         }
-      });
+        
+        // Batch remove badges
+        const badges = document.querySelectorAll('.grecaptcha-badge');
+        badges.forEach(badge => badge.remove());
+      };
+      
+      // Delay cleanup untuk menghindari race condition
+      setTimeout(cleanup, 100);
     };
   }, []);
 
