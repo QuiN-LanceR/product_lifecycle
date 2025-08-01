@@ -6,8 +6,10 @@ const pool = new Pool({
 });
 
 // GET - Fetch single dev history
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
+    
     const query = `
       SELECT 
         dh.id,
@@ -26,7 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       WHERE dh.id = $1
     `;
 
-    const result = await pool.query(query, [params.id]);
+    const result = await pool.query(query, [id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -49,8 +51,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT - Update dev history
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { id_produk, tipe_pekerjaan, tanggal_mulai, tanggal_akhir, version, deskripsi, status } = body;
 
@@ -62,9 +65,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       RETURNING *
     `;
 
-    const result = await pool.query(query, [
-      id_produk, tipe_pekerjaan, tanggal_mulai, tanggal_akhir, version, deskripsi, status, params.id
-    ]);
+    const result = await pool.query(query, [id_produk, tipe_pekerjaan, tanggal_mulai, tanggal_akhir, version, deskripsi, status, id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -75,8 +76,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({
       success: true,
-      message: 'Dev history updated successfully',
-      data: result.rows[0]
+      data: result.rows[0],
+      message: 'Dev history updated successfully'
     });
   } catch (error) {
     console.error('Error updating dev history:', error);
@@ -88,10 +89,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE - Delete dev history
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
+    
     const query = 'DELETE FROM tbl_produk_dev_histori WHERE id = $1 RETURNING *';
-    const result = await pool.query(query, [params.id]);
+    const result = await pool.query(query, [id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json(

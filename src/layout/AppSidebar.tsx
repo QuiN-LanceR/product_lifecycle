@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { useNavigateWithLoading } from "../hooks/useNavigateWithLoading";
 import SidebarThemeToggle from "../components/common/SidebarThemeToggle";
 import {
   DashboardIcon,
@@ -73,11 +74,11 @@ const navItems: NavItem[] = [
 ];
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
-  const pathname = usePathname();
-  
-  // Detect dark mode
+  const { isExpanded, isMobileOpen, setIsMobileOpen } = useSidebar();
+  const [isHovered, setIsHovered] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const pathname = usePathname();
+  const { navigateTo } = useNavigateWithLoading();
 
   useEffect(() => {
     // Check initial theme
@@ -96,7 +97,15 @@ const AppSidebar: React.FC = () => {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, []);  
+
+  const handleNavigation = (path: string) => {
+    navigateTo(path); // Gunakan navigateTo, bukan navigateWithLoading
+    // Close mobile sidebar after navigation
+    if (isMobileOpen) {
+      setIsMobileOpen(false);
+    }
+  };
 
   const renderMenuItems = (
     navItems: NavItem[],
@@ -143,11 +152,11 @@ const AppSidebar: React.FC = () => {
             </button>
           ) : (
             nav.path && (
-              <Link
-                href={nav.path}
+              <button
+                onClick={() => handleNavigation(nav.path!)}
                 className={`menu-item group ${
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
+                } w-full text-left`}
               >
                 <span
                   className={`${
@@ -161,7 +170,7 @@ const AppSidebar: React.FC = () => {
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <span className={`menu-item-text`}>{nav.name}</span>
                 )}
-              </Link>
+              </button>
             )
           )}
           {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
@@ -180,13 +189,13 @@ const AppSidebar: React.FC = () => {
               <ul className="mt-2 space-y-1 ml-9">
                 {nav.subItems.map((subItem) => (
                   <li key={subItem.name}>
-                    <Link
-                      href={subItem.path}
+                    <button
+                      onClick={() => handleNavigation(subItem.path)}
                       className={`menu-dropdown-item ${
                         isActive(subItem.path)
                           ? "menu-dropdown-item-active"
                           : "menu-dropdown-item-inactive"
-                      }`}
+                      } w-full text-left`}
                     >
                       {subItem.name}
                       <span className="flex items-center gap-1 ml-auto">
@@ -213,7 +222,7 @@ const AppSidebar: React.FC = () => {
                           </span>
                         )}
                       </span>
-                    </Link>
+                    </button>
                   </li>
                 ))}
               </ul>

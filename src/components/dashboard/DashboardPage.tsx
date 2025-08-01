@@ -4,7 +4,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 
 interface StageData {
   id: number;
@@ -20,13 +20,13 @@ interface DashboardStats {
 }
 
 const DashboardPages = () => {
-  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     total: 0,
     stages: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { navigateTo } = useNavigateWithLoading();
 
   const fetchDashboardStats = async () => {
     try {
@@ -60,11 +60,11 @@ const DashboardPages = () => {
   const handleStageClick = (id: number) => {
     const stageSlug = id;
     console.log(stageSlug)
-    router.push(`/admin/dashboard/${stageSlug}`);
+    navigateTo(`/admin/dashboard/${stageSlug}`);
   };
   
   const handleTotalProductsClick = () => {
-    router.push('/admin/dashboard/all');
+    navigateTo('/admin/dashboard/all');
   };
 
   useEffect(() => {

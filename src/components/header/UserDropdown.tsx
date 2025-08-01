@@ -13,13 +13,18 @@ export default function UserDropdown() {
   const router = useRouter();
   
   const handleLogout = async () => {
-    const res = await fetch("/api/logout", { method: "POST" });
-
-    if (res.ok) {
+    try {
+      const res = await fetch("/api/logout", { method: "POST" });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       toast.success("Berhasil logout!");
       router.push("/login");
-    } else {
-      toast.error("Gagal logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error(`Gagal memuat data produk: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
     }
   };
   

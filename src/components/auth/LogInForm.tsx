@@ -5,7 +5,7 @@ import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 import { toast } from 'react-hot-toast';
 import Image from "next/image";
 
@@ -13,7 +13,8 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const { navigateTo } = useNavigateWithLoading();
 
   useEffect(() => {
     if (document.querySelector('script[src*="recaptcha/api.js"]')) {
@@ -65,6 +66,9 @@ export default function SignInForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLoading) return;
+    setIsLoading(true);
 
     const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
     const password = (document.querySelector('input[name="password"]') as HTMLInputElement)?.value;
@@ -73,6 +77,7 @@ export default function SignInForm() {
       // Pastikan grecaptcha sudah dimuat
       if (!recaptchaLoaded || !window.grecaptcha) {
         toast.error("reCAPTCHA belum dimuat, silakan tunggu sebentar");
+        setIsLoading(false);
         return;
       }
 
@@ -91,13 +96,15 @@ export default function SignInForm() {
 
       if (res.ok && data.success) {
         toast.success("Login berhasil!");
-        router.push("/admin");
+        navigateTo("/admin");
       } else {
         toast.error(data.message || "Login gagal");
       }
     } catch (error) {
       console.error("Error:", error);
       toast.error("Terjadi kesalahan saat login");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -170,8 +177,20 @@ export default function SignInForm() {
                     </div>
                   </div>
                   <div>
-                    <Button className="w-full" size="sm">
-                      Masuk
+                    <Button 
+                      type="submit"
+                      className="w-full" 
+                      size="sm"
+                      disabled={isLoading || !recaptchaLoaded}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Memproses...
+                        </div>
+                      ) : (
+                        "Masuk"
+                      )}
                     </Button>
                   </div>
                 </div>
