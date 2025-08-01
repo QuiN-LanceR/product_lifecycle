@@ -1,9 +1,16 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MoreDotIcon } from "@/icons";
 import { DropdownItem } from "../../ui/dropdown/DropdownItem";
 import { Dropdown } from "../../ui/dropdown/Dropdown";
 import { ChevronDown } from 'lucide-react';
+
+interface TransitionMatrixData {
+  stages: string[];
+  segments: string[];
+  matrixData: number[][];
+  lastUpdated: string;
+}
 
 export default function TransitionMatrix() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +18,33 @@ export default function TransitionMatrix() {
   const [selectedStage, setSelectedStage] = useState('Semua Tahap');
   const [segmentDropdownOpen, setSegmentDropdownOpen] = useState(false);
   const [stageDropdownOpen, setStageDropdownOpen] = useState(false);
+  const [data, setData] = useState<TransitionMatrixData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/lifecycle/transition-matrix');
+        const result = await response.json();
+        
+        if (result.success) {
+          setData(result.data);
+        } else {
+          setError('Failed to fetch data');
+        }
+      } catch (err) {
+        setError('Error fetching data');
+        console.error('Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -19,17 +53,6 @@ export default function TransitionMatrix() {
   function closeDropdown() {
     setIsOpen(false);
   }
-
-  // Sample data for transition matrix
-  const stages = ['Introduction', 'Growth', 'Maturity', 'Decline'];
-  const segments = ['Kit & EP', 'Transmisi', 'Distribusi', 'Korporat', 'PP'];
-  
-  const matrixData = [
-    [0, 4, 2, 6, 1],
-    [3, 3, 3, 9, 1], 
-    [2, 9, 1, 7, 8],
-    [7, 0, 1, 2, 6]
-  ];
 
   const getIntensityColor = (value: number) => {
     if (value === 0) return 'bg-gray-100 dark:bg-gray-700';
@@ -46,10 +69,46 @@ export default function TransitionMatrix() {
     return 'text-white';
   };
 
+  if (loading) {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 h-fit max-h-[500px]">
+        <div className="px-4 pt-4 sm:px-5 sm:pt-5">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-4"></div>
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex space-x-2">
+                  {[...Array(6)].map((_, j) => (
+                    <div key={j} className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 h-fit max-h-[500px]">
+        <div className="px-4 pt-4 sm:px-5 sm:pt-5">
+          <div className="text-center py-8">
+            <p className="text-red-500 dark:text-red-400">{error || 'No data available'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { stages, segments, matrixData, lastUpdated } = data;
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 h-fit max-h-[500px]">
-      <div className="px-4 pt-4 sm:px-5 sm:pt-5">
-        <div className="flex items-center justify-between mb-3">
+    <div className="h-full overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="px-5 pt-5 sm:px-6 sm:pt-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
               Transition Matrix
@@ -61,7 +120,7 @@ export default function TransitionMatrix() {
 
           <div className="relative inline-block">
             <button onClick={toggleDropdown} className="dropdown-toggle">
-              <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
+              <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200" />
             </button>
             <Dropdown
               isOpen={isOpen}
@@ -84,7 +143,7 @@ export default function TransitionMatrix() {
           </div>
         </div>
 
-        {/* Filter Section - Lebih Kompak */}
+        {/* Filter Section */}
         <div className="flex items-center gap-3 mb-4">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Filter:
@@ -94,7 +153,7 @@ export default function TransitionMatrix() {
           <div className="relative">
             <button
               onClick={() => setSegmentDropdownOpen(!segmentDropdownOpen)}
-              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
             >
               {selectedSegment}
               <ChevronDown className="w-3 h-3" />
@@ -132,7 +191,7 @@ export default function TransitionMatrix() {
           <div className="relative">
             <button
               onClick={() => setStageDropdownOpen(!stageDropdownOpen)}
-              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
             >
               {selectedStage}
               <ChevronDown className="w-3 h-3" />
@@ -168,33 +227,37 @@ export default function TransitionMatrix() {
         </div>
       </div>
 
-      {/* Matrix Table - Ukuran Lebih Kompak */}
-      <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+      {/* Matrix Table */}
+      <div className="px-5 pb-5 sm:px-6 sm:pb-6">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th className="text-left p-1"></th>
+                <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700"></th>
                 {segments.map((segment) => (
-                  <th key={segment} className="text-center p-1 text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {segment}
+                  <th key={segment} className="text-center p-2 text-sm font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 min-w-[80px]">
+                    <div className="truncate" title={segment}>
+                      {segment}
+                    </div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {stages.map((stage, stageIndex) => (
-                <tr key={stage}>
-                  <td className="p-1 text-xs font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
-                    {stage}
+                <tr key={stage} className="border-b border-gray-100 dark:border-gray-800">
+                  <td className="p-2 text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[80px] border-r border-gray-200 dark:border-gray-700">
+                    <div className="truncate" title={stage}>
+                      {stage}
+                    </div>
                   </td>
                   {segments.map((segment, segmentIndex) => {
                     const value = matrixData[stageIndex][segmentIndex];
                     return (
-                      <td key={segment} className="p-0.5">
-                        <div className={`w-8 h-8 flex items-center justify-center rounded text-xs font-medium ${
+                      <td key={segment} className="p-1 text-center">
+                        <div className={`w-20 h-10 flex items-center justify-center rounded-lg text-sm font-bold border border-gray-200 dark:border-gray-600 ${
                           getIntensityColor(value)
-                        } ${getTextColor(value)}`}>
+                        } ${getTextColor(value)} transition-all duration-200 hover:scale-105 hover:shadow-md mx-auto`}>
                           {value}
                         </div>
                       </td>
@@ -206,23 +269,25 @@ export default function TransitionMatrix() {
           </table>
         </div>
         
-        {/* Color Scale Legend - Lebih Kompak */}
-        <div className="mt-3 flex items-center justify-center gap-1">
+        {/* Color Scale Legend */}
+        <div className="mt-4 flex items-center justify-center gap-2">
           <span className="text-xs text-gray-500 dark:text-gray-400">0</span>
-          <div className="flex">
-            <div className="w-3 h-3 bg-gray-100 dark:bg-gray-700"></div>
-            <div className="w-3 h-3 bg-cyan-100 dark:bg-cyan-900/30"></div>
-            <div className="w-3 h-3 bg-cyan-200 dark:bg-cyan-800/50"></div>
-            <div className="w-3 h-3 bg-cyan-300 dark:bg-cyan-700/70"></div>
-            <div className="w-3 h-3 bg-cyan-400 dark:bg-cyan-600/80"></div>
-            <div className="w-3 h-3 bg-cyan-500 dark:bg-cyan-500/90"></div>
+          <div className="flex border border-gray-200 dark:border-gray-600 rounded">
+            <div className="w-4 h-4 bg-gray-100 dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600"></div>
+            <div className="w-4 h-4 bg-cyan-100 dark:bg-cyan-900/30 border-r border-gray-200 dark:border-gray-600"></div>
+            <div className="w-4 h-4 bg-cyan-200 dark:bg-cyan-800/50 border-r border-gray-200 dark:border-gray-600"></div>
+            <div className="w-4 h-4 bg-cyan-300 dark:bg-cyan-700/70 border-r border-gray-200 dark:border-gray-600"></div>
+            <div className="w-4 h-4 bg-cyan-400 dark:bg-cyan-600/80 border-r border-gray-200 dark:border-gray-600"></div>
+            <div className="w-4 h-4 bg-cyan-500 dark:bg-cyan-500/90"></div>
           </div>
           <span className="text-xs text-gray-500 dark:text-gray-400">9+</span>
         </div>
         
         {/* Update Info */}
-        <div className="mt-2 flex items-center justify-center">
-          <span className="text-xs text-gray-500 dark:text-gray-400">Terendah diperbarui: 21/07/2023, 04.15.27</span>
+        <div className="mt-3 flex items-center justify-center">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Terakhir diperbarui: {lastUpdated}
+          </span>
         </div>
       </div>
     </div>

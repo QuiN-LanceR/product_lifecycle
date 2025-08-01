@@ -58,25 +58,25 @@ const StageDetailPage = () => {
     'introduction': {
       name: 'introduction',
       displayName: 'Introduction',
-      gradient: 'bg-gradient-to-r from-[#FFBE62] to-[#FF9500]',
+      gradient: 'bg-gradient-to-b from-[#FFBE62] to-[#FF9500]',
       textColor: 'text-white'
     },
     'growth': {
       name: 'growth',
       displayName: 'Growth',
-      gradient: 'bg-gradient-to-r from-[#0EA976] to-[#006846]',
+      gradient: 'bg-gradient-to-b from-[#0EA976] to-[#006846]',
       textColor: 'text-white'
     },
     'maturity': {
       name: 'maturity',
       displayName: 'Maturity',
-      gradient: 'bg-gradient-to-r from-[#4791F2] to-[#0E458D]',
+      gradient: 'bg-gradient-to-b from-[#4791F2] to-[#0E458D]',
       textColor: 'text-white'
     },
     'decline': {
       name: 'decline',
       displayName: 'Decline',
-      gradient: 'bg-gradient-to-r from-[#F85124] to-[#86270E]',
+      gradient: 'bg-gradient-to-b from-[#F85124] to-[#86270E]',
       textColor: 'text-white'
     }
   };
@@ -84,12 +84,12 @@ const StageDetailPage = () => {
   const currentStage = stageName ? stageConfig[stageName.toLowerCase()] || {
     name: stageName.toLowerCase(),
     displayName: stageName,
-    gradient: 'bg-gradient-to-r from-gray-500 to-gray-700',
+    gradient: 'bg-gradient-to-b from-gray-500 to-gray-700',
     textColor: 'text-white'
   } : {
     name: '',
     displayName: 'Loading...',
-    gradient: 'bg-gradient-to-r from-gray-500 to-gray-700',
+    gradient: 'bg-gradient-to-b from-gray-500 to-gray-700',
     textColor: 'text-white'
   };
 
@@ -110,10 +110,10 @@ const StageDetailPage = () => {
 
   const getStageBadgeColor = (stage: string) => {
     const colors: Record<string, string> = {
-      'Introduction': 'bg-gradient-to-r from-[#FFBE62] to-[#FF9500] text-white',
-      'Growth': 'bg-gradient-to-r from-[#0EA976] to-[#006846] text-white',
-      'Maturity': 'bg-gradient-to-r from-[#4791F2] to-[#0E458D] text-white',
-      'Decline': 'bg-gradient-to-r from-[#F85124] to-[#86270E] text-white'
+      'Introduction': 'bg-gradient-to-b from-[#FFBE62] to-[#FF9500] text-white',
+      'Growth': 'bg-gradient-to-b from-[#0EA976] to-[#006846] text-white',
+      'Maturity': 'bg-gradient-to-b from-[#4791F2] to-[#0E458D] text-white',
+      'Decline': 'bg-gradient-to-b from-[#F85124] to-[#86270E] text-white'
     };
     return colors[stage] || 'bg-gray-500 text-white';
   };

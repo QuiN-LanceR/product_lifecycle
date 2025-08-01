@@ -19,7 +19,7 @@ export async function GET() {
         FROM public.tbl_stage st
         LEFT JOIN public.tbl_produk p ON st.id = p.id_stage
         GROUP BY st.id, st.stage, st.icon_light, st.icon_dark
-        ORDER BY st.stage
+        ORDER BY st.id
     `;
 
     const result = await client.query(statsQuery);
