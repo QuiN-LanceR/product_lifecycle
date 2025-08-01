@@ -65,7 +65,7 @@ const AllProductsPage = () => {
       'Maturity': 'bg-gradient-to-b from-[#4791F2] to-[#0E458D] text-white',
       'Decline': 'bg-gradient-to-b from-[#F85124] to-[#86270E] text-white'
     };
-    return colors[stage] || 'bg-gradient-to-b from-gray-500 to-gray-700';
+    return colors[stage] || 'bg-gradient-to-b from-gray-500 to-gray-700 text-white';
   };
 
   return (
@@ -73,7 +73,7 @@ const AllProductsPage = () => {
       <PageBreadcrumb pageTitle="All Products" secondTitle="Dashboard" />
       
       {/* Header dengan gradient ungu */}
-      <div className="bg-gradient-to-b from-[#5153FF] to-[#3D40CC] rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-[#5153FF] to-[#3D40CC] rounded-lg p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">All Products</h1>
@@ -134,7 +134,7 @@ const AllProductsPage = () => {
                         <div className="font-medium text-gray-900 dark:text-white">{product.name}</div>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium min-w-[100px] ${getStageBadgeColor(product.stage)}`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStageBadgeColor(product.stage)}`}>
                           {product.stage}
                         </span>
                       </td>

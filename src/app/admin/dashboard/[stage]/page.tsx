@@ -213,11 +213,11 @@ const StageDetailPage = () => {
                         {product.name}
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium min-w-[80px] ${getStageBadgeColor(product.stage)}`}>
-                          {product.stage}
-                        </span>
-                      </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStageBadgeColor(product.stage)}`}>
+                        {product.stage}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getSegmentBadgeColor(product.segment)}`}>
                         {product.segment}
