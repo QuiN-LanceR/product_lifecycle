@@ -6,7 +6,7 @@ import { Modal } from "../../ui/modal";
 import Button from "@/components/ui/button/Button";
 import AddDevHistoriForm from "../../devhistori/AddDevHistoriForm";
 import EditDevHistoriForm from "../../devhistori/EditDevHistoriForm";
-import { Pencil, Trash, Search, X, ChevronUp, ChevronDown, Upload, Code, Eye } from "lucide-react";
+import { Pencil, Trash, Search, X, ChevronUp, ChevronDown, Code, Eye } from "lucide-react";
 import { useUser } from "@/context/UsersContext";
 import Swal from 'sweetalert2';
 
@@ -386,15 +386,16 @@ export default function TableMasterDevHistori({ currentPage, onTotalChange }: Pr
               <Button
                 onClick={() => setImportModalOpen(true)}
                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Import Excel
+              >                
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
               </Button>
               <Button
                 onClick={handleAdd}
                 className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
               >
-                + Add Dev History
+                +
               </Button>
             </div>
           )}

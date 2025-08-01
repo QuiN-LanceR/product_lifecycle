@@ -11,7 +11,7 @@ const DevHistoriPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <PageBreadcrumb pageTitle="Development History" secondTitle="Master Data" />
+      <PageBreadcrumb pageTitle="Development History" secondTitle="Product Catalog" />
       <div className="space-y-6">
         <TableMasterDevHistori 
           currentPage={currentPage}
