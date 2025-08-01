@@ -99,7 +99,8 @@ export default function TableMasterStages({ currentPage, onTotalChange }: Props)
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchStages();

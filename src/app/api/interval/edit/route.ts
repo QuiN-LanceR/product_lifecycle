@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function PUT(request: Request) {
   try {
@@ -31,7 +27,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const client = await pool.connect();
+    const client = await getPool().connect();
     try {
       // Cek apakah interval stage ada
       const existingCheck = await client.query(

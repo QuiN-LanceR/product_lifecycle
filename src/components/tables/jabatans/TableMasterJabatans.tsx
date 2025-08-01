@@ -59,7 +59,8 @@ export default function TableMasterJabatans({ currentPage, onTotalChange }: Prop
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder]);
 
   const handleSort = (field: keyof Jabatan) => {
     if (sortBy === field) {

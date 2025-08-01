@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Cek apakah kategori sudah ada
-    const existing = await pool.query(
+    const existing = await getPool().query(
       'SELECT id FROM tbl_kategori WHERE LOWER(kategori) = LOWER($1)',
       [kategori]
     );
@@ -31,7 +27,7 @@ export async function POST(req: NextRequest) {
     
     const createdAt = new Date();
     
-    await pool.query(
+    await getPool().query(
       `INSERT INTO tbl_kategori (kategori, icon_light, icon_dark, created_at)
        VALUES ($1, $2, $3, $4)`,
       [kategori, icon_light || null, icon_dark || null, createdAt]

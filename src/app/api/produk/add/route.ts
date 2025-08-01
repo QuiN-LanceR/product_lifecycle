@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { getPool } from '@/lib/database';
 import { writeFile } from "fs/promises";
 import path from "path";
 import { mkdirSync, existsSync } from "fs";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Cek apakah produk sudah ada
-    const existing = await pool.query(
+    const existing = await getPool().query(
       'SELECT id FROM tbl_produk WHERE produk = $1',
       [nama_produk]
     );
@@ -41,7 +37,7 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const client = await pool.connect();
+    const client = await getPool().connect();
     
     try {
       await client.query('BEGIN');

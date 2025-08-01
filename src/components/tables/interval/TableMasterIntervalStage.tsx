@@ -73,7 +73,8 @@ export default function TableMasterIntervalStage({ currentPage, onTotalChange }:
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchQuery, sortBy, sortOrder, onTotalChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, searchQuery, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchIntervalStages();

@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function GET() {
   try {
@@ -15,7 +11,7 @@ export async function GET() {
       ORDER BY produk ASC
     `;
 
-    const result = await pool.query(query);
+    const result = await getPool().query(query);
 
     return NextResponse.json({
       success: true,

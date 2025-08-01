@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,7 +17,7 @@ export async function GET(request: Request) {
   const validSortFields = ["id", "produk", "kategori", "segmen", "stage", "harga", "tanggal_launch", "created_at"];
   const sortField = validSortFields.includes(sortBy) ? sortBy : "created_at";
 
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     // Build WHERE conditions
     const whereConditions = [];

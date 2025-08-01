@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/utils/auth";
+// Import env validator untuk memastikan environment variables valid
+import "@/lib/env";
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
@@ -8,10 +10,9 @@ export async function middleware(req: NextRequest) {
   if (token) {
     try {
       user = await verifyToken(token);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Token verification failed');
+        console.error('Token verification failed:', err);
       }
       user = null;
     }

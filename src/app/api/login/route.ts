@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
+import { getPool } from '@/lib/database';
 import bcrypt from 'bcrypt';
 import { generateToken } from "@/utils/auth";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // atau custom config db
-});
 
 export async function POST(req: NextRequest) {
   const { username, password, token: recaptchaToken } = await req.json();
@@ -25,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, message: "reCAPTCHA gagal" }, { status: 403 });
   }
 
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     // Ambil semua field yang dibutuhkan termasuk fullname
     const result = await client.query(

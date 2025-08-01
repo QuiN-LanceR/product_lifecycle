@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import * as XLSX from 'xlsx';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = await pool.connect();
+    const client = await getPool().connect();
     let imported = 0;
     const errors: string[] = [];
 

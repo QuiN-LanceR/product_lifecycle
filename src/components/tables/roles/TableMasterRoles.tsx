@@ -87,7 +87,8 @@ export default function TableMasterRoles({ currentPage, onTotalChange }: Props) 
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchQuery, onTotalChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchQuery]);
 
   useEffect(() => {
     fetchRoles();

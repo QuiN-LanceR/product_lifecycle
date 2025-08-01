@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { writeFile } from "fs/promises";
 import path from "path";
 import { mkdirSync, existsSync } from "fs";
 import bcrypt from 'bcrypt';
-
-// Buat koneksi pool PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Cek apakah user sudah ada
-    const existing = await pool.query(
+    const existing = await getPool().query(
       'SELECT id FROM tbl_user WHERE username = $1 OR email = $2',
       [username, email]
     );
@@ -65,7 +60,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const createdAt = new Date();
     
-    await pool.query(
+    await getPool().query(
       `INSERT INTO tbl_user (username, fullname, email, photo, password, role, jabatan, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [username, fullname, email, photoName, hashedPassword, role, jabatan, createdAt]

@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function GET() {
   try {
@@ -14,7 +10,7 @@ export async function GET() {
       FROM tbl_produk 
       ORDER BY nama_produk ASC
     `;
-    const produkResult = await pool.query(produkQuery);
+    const produkResult = await getPool().query(produkQuery);
     const produkData = produkResult.rows;
 
     // Buat workbook baru

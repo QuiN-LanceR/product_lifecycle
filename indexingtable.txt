@@ -1,0 +1,213 @@
+-- ===================================================================
+-- DATABASE INDEXES UNTUK OPTIMASI PERFORMA
+-- Product Lifecycle Management System
+-- ===================================================================
+
+-- 1. INDEKS UNTUK TBL_ATTACHMENT_PRODUK
+-- Foreign key index untuk join dengan tbl_produk
+CREATE INDEX IF NOT EXISTS idx_attachment_produk_produk_id 
+ON tbl_attachment_produk(produk_id);
+
+-- Index untuk pencarian berdasarkan tipe file
+CREATE INDEX IF NOT EXISTS idx_attachment_produk_type 
+ON tbl_attachment_produk(type);
+
+-- Index untuk sorting berdasarkan tanggal
+CREATE INDEX IF NOT EXISTS idx_attachment_produk_created_at 
+ON tbl_attachment_produk(created_at DESC);
+
+-- 2. INDEKS UNTUK TBL_INTERVAL_STAGE
+-- Foreign key indexes untuk join dengan tbl_stage
+CREATE INDEX IF NOT EXISTS idx_interval_stage_previous 
+ON tbl_interval_stage(id_stage_previous);
+
+CREATE INDEX IF NOT EXISTS idx_interval_stage_next 
+ON tbl_interval_stage(id_stage_next);
+
+-- Composite index untuk pencarian transisi stage
+CREATE INDEX IF NOT EXISTS idx_interval_stage_transition 
+ON tbl_interval_stage(id_stage_previous, id_stage_next);
+
+-- Index untuk sorting berdasarkan interval
+CREATE INDEX IF NOT EXISTS idx_interval_stage_interval 
+ON tbl_interval_stage(interval);
+
+-- 3. INDEKS UNTUK TBL_JABATAN
+-- Index untuk pencarian berdasarkan nama jabatan
+CREATE INDEX IF NOT EXISTS idx_jabatan_jabatan 
+ON tbl_jabatan(jabatan);
+
+-- Index untuk sorting berdasarkan tanggal
+CREATE INDEX IF NOT EXISTS idx_jabatan_created_at 
+ON tbl_jabatan(created_at DESC);
+
+-- 4. INDEKS UNTUK TBL_KATEGORI
+-- Index untuk pencarian berdasarkan nama kategori
+CREATE INDEX IF NOT EXISTS idx_kategori_kategori 
+ON tbl_kategori(kategori);
+
+-- Index untuk sorting berdasarkan tanggal
+CREATE INDEX IF NOT EXISTS idx_kategori_created_at 
+ON tbl_kategori(created_at DESC);
+
+-- 5. INDEKS UNTUK TBL_PRODUK (TABEL UTAMA)
+-- Foreign key indexes untuk join
+CREATE INDEX IF NOT EXISTS idx_produk_kategori 
+ON tbl_produk(id_kategori);
+
+CREATE INDEX IF NOT EXISTS idx_produk_segmen 
+ON tbl_produk(id_segmen);
+
+CREATE INDEX IF NOT EXISTS idx_produk_stage 
+ON tbl_produk(id_stage);
+
+-- Index untuk pencarian berdasarkan nama produk
+CREATE INDEX IF NOT EXISTS idx_produk_produk 
+ON tbl_produk(produk);
+
+-- Index untuk pencarian berdasarkan pelanggan
+CREATE INDEX IF NOT EXISTS idx_produk_pelanggan 
+ON tbl_produk(pelanggan);
+
+-- Index untuk filtering berdasarkan tanggal launch
+CREATE INDEX IF NOT EXISTS idx_produk_tanggal_launch 
+ON tbl_produk(tanggal_launch DESC);
+
+-- Index untuk filtering berdasarkan harga
+CREATE INDEX IF NOT EXISTS idx_produk_harga 
+ON tbl_produk(harga);
+
+-- Composite index untuk dashboard queries
+CREATE INDEX IF NOT EXISTS idx_produk_stage_kategori 
+ON tbl_produk(id_stage, id_kategori);
+
+-- Index untuk monitoring stage timeline
+CREATE INDEX IF NOT EXISTS idx_produk_stage_dates 
+ON tbl_produk(id_stage, tanggal_stage_start, tanggal_stage_end);
+
+-- 6. INDEKS UNTUK TBL_PRODUK_DEV_HISTORI
+-- Foreign key index untuk join dengan tbl_produk
+CREATE INDEX IF NOT EXISTS idx_dev_histori_produk 
+ON tbl_produk_dev_histori(id_produk);
+
+-- Index untuk pencarian berdasarkan tipe pekerjaan
+CREATE INDEX IF NOT EXISTS idx_dev_histori_tipe 
+ON tbl_produk_dev_histori(tipe_pekerjaan);
+
+-- Index untuk pencarian berdasarkan status
+CREATE INDEX IF NOT EXISTS idx_dev_histori_status 
+ON tbl_produk_dev_histori(status);
+
+-- Index untuk pencarian berdasarkan versi
+CREATE INDEX IF NOT EXISTS idx_dev_histori_version 
+ON tbl_produk_dev_histori(version);
+
+-- Composite index untuk timeline queries
+CREATE INDEX IF NOT EXISTS idx_dev_histori_produk_dates 
+ON tbl_produk_dev_histori(id_produk, tanggal_mulai DESC, tanggal_akhir DESC);
+
+-- Index untuk sorting berdasarkan tanggal
+CREATE INDEX IF NOT EXISTS idx_dev_histori_created_at 
+ON tbl_produk_dev_histori(created_at DESC);
+
+-- 7. INDEKS UNTUK TBL_ROLE
+-- Index untuk pencarian berdasarkan nama role
+CREATE INDEX IF NOT EXISTS idx_role_role 
+ON tbl_role(role);
+
+-- 8. INDEKS UNTUK TBL_SEGMEN
+-- Index untuk pencarian berdasarkan nama segmen
+CREATE INDEX IF NOT EXISTS idx_segmen_segmen 
+ON tbl_segmen(segmen);
+
+-- Index untuk sorting berdasarkan tanggal
+CREATE INDEX IF NOT EXISTS idx_segmen_created_at 
+ON tbl_segmen(created_at DESC);
+
+-- 9. INDEKS UNTUK TBL_STAGE
+-- Index untuk pencarian berdasarkan nama stage
+CREATE INDEX IF NOT EXISTS idx_stage_stage 
+ON tbl_stage(stage);
+
+-- Index untuk sorting berdasarkan tanggal
+CREATE INDEX IF NOT EXISTS idx_stage_created_at 
+ON tbl_stage(created_at DESC);
+
+-- 10. INDEKS UNTUK TBL_STAGE_HISTORI (MONITORING)
+-- Foreign key index untuk join dengan tbl_produk
+CREATE INDEX IF NOT EXISTS idx_stage_histori_produk 
+ON tbl_stage_histori(id_produk);
+
+-- Index untuk join dengan tbl_stage (previous)
+CREATE INDEX IF NOT EXISTS idx_stage_histori_previous 
+ON tbl_stage_histori(stage_previous);
+
+-- Index untuk join dengan tbl_stage (current)
+CREATE INDEX IF NOT EXISTS idx_stage_histori_now 
+ON tbl_stage_histori(stage_now);
+
+-- Composite index untuk monitoring queries
+CREATE INDEX IF NOT EXISTS idx_stage_histori_produk_timeline 
+ON tbl_stage_histori(id_produk, created_at DESC);
+
+-- Index untuk pencarian transisi stage
+CREATE INDEX IF NOT EXISTS idx_stage_histori_transition 
+ON tbl_stage_histori(stage_previous, stage_now);
+
+-- Index untuk sorting berdasarkan tanggal
+CREATE INDEX IF NOT EXISTS idx_stage_histori_created_at 
+ON tbl_stage_histori(created_at DESC);
+
+-- 11. INDEKS UNTUK TBL_USER
+-- Unique index untuk username (jika belum ada)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_username 
+ON tbl_user(username);
+
+-- Unique index untuk email (jika belum ada)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email 
+ON tbl_user(email);
+
+-- Foreign key index untuk join dengan tbl_role
+CREATE INDEX IF NOT EXISTS idx_user_role 
+ON tbl_user(role);
+
+-- Foreign key index untuk join dengan tbl_jabatan
+CREATE INDEX IF NOT EXISTS idx_user_jabatan 
+ON tbl_user(jabatan);
+
+-- Index untuk pencarian berdasarkan fullname
+CREATE INDEX IF NOT EXISTS idx_user_fullname 
+ON tbl_user(fullname);
+
+-- ===================================================================
+-- INDEKS TAMBAHAN UNTUK PERFORMA OPTIMAL
+-- ===================================================================
+
+-- Composite index untuk dashboard statistics
+CREATE INDEX IF NOT EXISTS idx_produk_dashboard_stats 
+ON tbl_produk(id_stage, id_kategori, id_segmen, created_at DESC);
+
+-- Index untuk full-text search pada produk
+CREATE INDEX IF NOT EXISTS idx_produk_search 
+ON tbl_produk USING gin(to_tsvector('indonesian', produk || ' ' || COALESCE(deskripsi, '') || ' ' || COALESCE(pelanggan, '')));
+
+-- Index untuk monitoring performa berdasarkan stage duration
+CREATE INDEX IF NOT EXISTS idx_produk_stage_duration 
+ON tbl_produk(id_stage, tanggal_stage_start, tanggal_stage_end) 
+WHERE tanggal_stage_start IS NOT NULL;
+
+-- ===================================================================
+-- VERIFIKASI INDEKS
+-- ===================================================================
+
+-- Query untuk melihat semua indeks yang telah dibuat
+-- SELECT schemaname, tablename, indexname, indexdef 
+-- FROM pg_indexes 
+-- WHERE schemaname = 'public' 
+-- ORDER BY tablename, indexname;
+
+-- Query untuk melihat ukuran indeks
+-- SELECT schemaname, tablename, attname, n_distinct, correlation 
+-- FROM pg_stats 
+-- WHERE schemaname = 'public' 
+-- ORDER BY tablename, attname;

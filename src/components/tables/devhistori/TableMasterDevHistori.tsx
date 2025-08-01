@@ -99,29 +99,22 @@ export default function TableMasterDevHistori({ currentPage, onTotalChange }: Pr
   }, [searchQuery]);
 
   const fetchDevHistoris = useCallback(async () => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "10",
-        search: debouncedSearchQuery,
-        sortBy,
-        sortOrder,
-      });
-
-      const response = await fetch(`/api/devhistori?${params}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setDevHistoris(data.data);
-        onTotalChange(data.pagination.totalPages);
-      }
+      const res = await fetch(
+        `/api/devhistori/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+      );
+      const data = await res.json();
+      setDevHistoris(data.devHistoris);
+      onTotalChange(Math.ceil(data.total / data.perPage));
     } catch (error) {
       console.error("Error fetching dev historis:", error);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchDevHistoris();

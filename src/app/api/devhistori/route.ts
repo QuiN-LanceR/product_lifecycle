@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 // GET - Fetch all dev history with pagination and search
 export async function GET(request: NextRequest) {
@@ -55,8 +51,8 @@ export async function GET(request: NextRequest) {
     `;
 
     const [result, countResult] = await Promise.all([
-      pool.query(query, queryParams),
-      pool.query(countQuery, search ? [`%${search}%`] : [])
+      getPool().query(query, queryParams),
+      getPool().query(countQuery, search ? [`%${search}%`] : [])
     ]);
 
     const total = parseInt(countResult.rows[0].total);
@@ -94,7 +90,7 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
-    const result = await pool.query(query, [
+    const result = await getPool().query(query, [
       id_produk, tipe_pekerjaan, tanggal_mulai, tanggal_akhir, version, deskripsi, status
     ]);
 
