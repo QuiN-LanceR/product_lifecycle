@@ -104,7 +104,8 @@ export default function TableMasterKategoris({ currentPage, onTotalChange }: Pro
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchKategoris();

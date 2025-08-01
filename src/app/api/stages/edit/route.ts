@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function POST(req: NextRequest) {
   const { id, stage, icon_light, icon_dark } = await req.json();
@@ -15,7 +11,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     // Cek apakah stage dengan nama yang sama sudah ada (selain stage yang sedang diedit)
     const checkExisting = await client.query(

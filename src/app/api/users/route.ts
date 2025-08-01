@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
 import { verifyToken } from "@/utils/auth";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,7 +17,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Token tidak valid" }, { status: 401 });
     }
 
-    const client = await pool.connect();
+    const client = await getPool().connect();
     try {
       // Ambil data user berdasarkan username dari token
       const result = await client.query(

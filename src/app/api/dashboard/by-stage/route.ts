@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,7 +27,7 @@ export async function GET(request: NextRequest) {
       ORDER BY p.created_at DESC
     `;
 
-    const result = await pool.query(query, [id]);
+    const result = await getPool().query(query, [id]);
 
     // Ambil nama stage untuk response
     const stageName = result.rows.length > 0 ? result.rows[0].stage : null;

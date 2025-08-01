@@ -99,29 +99,22 @@ export default function TableMasterDevHistori({ currentPage, onTotalChange }: Pr
   }, [searchQuery]);
 
   const fetchDevHistoris = useCallback(async () => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "10",
-        search: debouncedSearchQuery,
-        sortBy,
-        sortOrder,
-      });
-
-      const response = await fetch(`/api/devhistori?${params}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setDevHistoris(data.data);
-        onTotalChange(data.pagination.totalPages);
-      }
+      const res = await fetch(
+        `/api/devhistori/master?page=${currentPage}&search=${debouncedSearchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+      );
+      const data = await res.json();
+      setDevHistoris(data.devHistoris);
+      onTotalChange(Math.ceil(data.total / data.perPage));
     } catch (error) {
       console.error("Error fetching dev historis:", error);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder, onTotalChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchQuery, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchDevHistoris();
@@ -395,7 +388,9 @@ export default function TableMasterDevHistori({ currentPage, onTotalChange }: Pr
                 onClick={handleAdd}
                 className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
               >
-                +
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
               </Button>
             </div>
           )}

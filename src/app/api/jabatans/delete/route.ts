@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
@@ -12,7 +8,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: false, message: "Jabatan tidak ditemukan" }, { status: 400 });
   }
 
-  const client = await pool.connect();
+  const client = await getPool().connect();
 
   try {
     // Periksa apakah jabatan digunakan oleh user

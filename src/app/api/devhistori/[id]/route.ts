@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 // GET - Fetch single dev history
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -28,7 +24,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       WHERE dh.id = $1
     `;
 
-    const result = await pool.query(query, [id]);
+    const result = await getPool().query(query, [id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -65,7 +61,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       RETURNING *
     `;
 
-    const result = await pool.query(query, [id_produk, tipe_pekerjaan, tanggal_mulai, tanggal_akhir, version, deskripsi, status, id]);
+    const result = await getPool().query(query, [id_produk, tipe_pekerjaan, tanggal_mulai, tanggal_akhir, version, deskripsi, status, id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -94,7 +90,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { id } = await params;
     
     const query = 'DELETE FROM tbl_produk_dev_histori WHERE id = $1 RETURNING *';
-    const result = await pool.query(query, [id]);
+    const result = await getPool().query(query, [id]);
 
     if (result.rows.length === 0) {
       return NextResponse.json(

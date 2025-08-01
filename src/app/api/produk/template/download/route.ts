@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import * as XLSX from 'xlsx';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function GET() {
   try {
-    const client = await pool.connect();
+    const client = await getPool().connect();
     
     // Ambil data master
     const [kategoriResult, segmenResult, stageResult] = await Promise.all([

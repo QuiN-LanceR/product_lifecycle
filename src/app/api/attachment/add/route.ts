@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
 import { writeFile } from "fs/promises";
 import path from "path";
 import { mkdirSync, existsSync } from "fs";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { getPool } from '@/lib/database';
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
@@ -26,8 +22,8 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-
-  const client = await pool.connect();
+ 
+  const client = await getPool().connect();
   
   try {
     // Upload file

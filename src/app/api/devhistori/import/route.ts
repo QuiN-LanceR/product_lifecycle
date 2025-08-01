@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { getPool } from '@/lib/database';
 import * as XLSX from 'xlsx';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -116,7 +112,7 @@ export async function POST(request: NextRequest) {
 
         // Validasi produk exists
         const productQuery = 'SELECT id FROM tbl_produk WHERE id = $1';
-        const productResult = await pool.query(productQuery, [id_produk]);
+        const productResult = await getPool().query(productQuery, [id_produk]);
         
         if (productResult.rows.length === 0) {
           errors.push(`Baris ${i + 2}: Produk dengan ID \"${id_produk}\" tidak ditemukan`);
@@ -170,7 +166,7 @@ export async function POST(request: NextRequest) {
           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
         `;
 
-        await pool.query(insertQuery, [
+        await getPool().query(insertQuery, [
           id_produk, 
           tipe_pekerjaan, 
           formattedTanggalMulai, 

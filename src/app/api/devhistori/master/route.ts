@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool } from '@/lib/database';
 
-// GET - Fetch stage history with pagination and search
+// GET - Fetch master dev history list
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -18,44 +18,41 @@ export async function GET(request: NextRequest) {
     let paramIndex = 3;
 
     if (search) {
-      whereClause = `WHERE (p.produk as nama_produk ILIKE $${paramIndex} OR sp.stage ILIKE $${paramIndex} OR sn.stage ILIKE $${paramIndex} OR sh.catatan ILIKE $${paramIndex})`;
+      whereClause = `WHERE (p.produk ILIKE $${paramIndex} OR dh.tipe_pekerjaan ILIKE $${paramIndex} OR dh.version ILIKE $${paramIndex} OR dh.deskripsi ILIKE $${paramIndex})`;
       queryParams.push(`%${search}%`);
       paramIndex++;
     }
 
     const query = `
       SELECT 
-        sh.id,
-        sh.id_produk,
+        dh.id,
+        dh.id_produk,
         p.produk as nama_produk,
-        sh.stage_previous as stage_previous_id,
-        sh.stage_now as stage_now_id,
-        sp.stage as stage_previous_name,
-        sn.stage as stage_now_name,
-        sh.catatan,
-        sh.created_at,
-        sh.updated_at
-      FROM tbl_stage_histori sh
-      LEFT JOIN tbl_produk p ON sh.id_produk = p.id
-      LEFT JOIN tbl_stage sp ON sh.stage_previous = sp.id
-      LEFT JOIN tbl_stage sn ON sh.stage_now = sn.id
+        dh.tipe_pekerjaan,
+        dh.tanggal_mulai,
+        dh.tanggal_akhir,
+        dh.version,
+        dh.deskripsi,
+        dh.status,
+        dh.created_at,
+        dh.updated_at
+      FROM tbl_produk_dev_histori dh
+      LEFT JOIN tbl_produk p ON dh.id_produk = p.id
       ${whereClause}
-      ORDER BY ${sortBy} ${sortOrder}
+      ORDER BY dh.${sortBy} ${sortOrder}
       LIMIT $1 OFFSET $2
     `;
 
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM tbl_stage_histori sh
-      LEFT JOIN tbl_produk p ON sh.id_produk = p.id
-      LEFT JOIN tbl_stage sp ON sh.stage_previous = sp.id
-      LEFT JOIN tbl_stage sn ON sh.stage_now = sn.id
+      FROM tbl_produk_dev_histori dh
+      LEFT JOIN tbl_produk p ON dh.id_produk = p.id
       ${whereClause}
     `;
 
     const [dataResult, countResult] = await Promise.all([
       getPool().query(query, queryParams),
-      getPool().query(countQuery, search ? [`%${search}%`] : [])
+      getPool().query(countQuery, queryParams.slice(2))
     ]);
 
     const total = parseInt(countResult.rows[0].total);
@@ -63,19 +60,16 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: dataResult.rows,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalItems: total,
-        itemsPerPage: limit
-      }
+      devHistoris: dataResult.rows,
+      total,
+      perPage: limit,
+      totalPages,
+      currentPage: page
     });
-
   } catch (error) {
-    console.error('Error fetching stage history:', error);
+    console.error('Error fetching master dev history:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch stage history' },
+      { success: false, message: 'Failed to fetch dev history' },
       { status: 500 }
     );
   }
