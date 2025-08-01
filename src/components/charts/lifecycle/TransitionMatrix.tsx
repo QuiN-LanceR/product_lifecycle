@@ -71,21 +71,20 @@ export default function TransitionMatrix() {
 
   if (loading) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 h-fit max-h-[500px]">
-        <div className="px-4 pt-4 sm:px-5 sm:pt-5">
+      <div className="h-full overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 shadow-sm">
+        <div className="px-5 pt-5 sm:px-6 sm:pt-6">
           <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-4"></div>
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex space-x-2">
-                  {[...Array(6)].map((_, j) => (
-                    <div key={j} className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  ))}
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-36 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-60"></div>
+              </div>
+              <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
             </div>
           </div>
+        </div>
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+          <div className="h-80 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
         </div>
       </div>
     );

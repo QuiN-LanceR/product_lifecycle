@@ -119,24 +119,29 @@ const DashboardPages = () => {
           {[...Array(4)].map((_, index) => (
             <div key={`skeleton-${index}`} className="rounded-2xl p-6 shadow-lg animate-pulse bg-gray-200 dark:bg-gray-700 h-32">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-xl"></div>
+                <div className="p-2 rounded-lg bg-gray-300 dark:bg-gray-600">
+                  <div className="w-5 h-5 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
-                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-24"></div>
+              <div className="space-y-1">
+                <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-12"></div>
+                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
               </div>
             </div>
           ))}
         </div>
         
         {/* Total Products Skeleton */}
-        <div className="rounded-2xl p-8 shadow-lg animate-pulse bg-gray-200 dark:bg-gray-700 h-24">
+        <div className="rounded-2xl p-8 shadow-lg animate-pulse bg-gray-200 dark:bg-gray-700">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-32"></div>
+              <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+              <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-32"></div>
               <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-24"></div>
             </div>
-            <div className="h-12 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+            <div className="p-4 bg-gray-300 dark:bg-gray-600 rounded-2xl">
+              <div className="w-12 h-12 bg-gray-400 dark:bg-gray-500 rounded"></div>
+            </div>
           </div>
         </div>
       </div>

@@ -46,18 +46,13 @@ export default function TableMasterStages({ currentPage, onTotalChange }: Props)
       <ChevronDown className="h-4 w-4 text-blue-500" />;
   };
 
-    const SkeletonRow = () => (
+  const SkeletonRow = () => (
     <tr className="animate-pulse">
       <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md w-8"></div>
       </td>
       <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
-      </td>
-      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex justify-center">
-          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
-        </div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md w-24"></div>
       </td>
       <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex justify-center">
@@ -65,7 +60,12 @@ export default function TableMasterStages({ currentPage, onTotalChange }: Props)
         </div>
       </td>
       <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+        <div className="flex justify-center">
+          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-md"></div>
+        </div>
+      </td>
+      <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md w-20"></div>
       </td>
       <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex justify-center gap-2">

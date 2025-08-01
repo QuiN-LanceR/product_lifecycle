@@ -60,29 +60,45 @@ export const SegmentasiBisnis = () => {
     fetchSegments();
   };
 
-  // Loading skeleton
+    // Loading skeleton
   if (loading) {
     return (
-      <div className="mb-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-            Segmentasi Bisnis
-          </h3>
+          <div className="flex items-center space-x-2">
+            <div className="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"></div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              Segmentasi Bisnis
+            </h3>
+          </div>
+          <div className="w-20 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
           {[...Array(5)].map((_, index) => (
-            <div key={`segment-skeleton-${index}`} className="relative">
-              {/* Main box skeleton */}
-              <div className="rounded-2xl bg-gray-200 dark:bg-gray-700 p-6 animate-pulse h-32 relative overflow-hidden">
-                {/* Cut corner for icon */}
-                <div className="absolute bottom-0 right-0 w-5 h-5 bg-white dark:bg-gray-800 rounded-tl-full"></div>
-                <div className="space-y-2">
+            <div key={`segment-skeleton-${index}`} className="relative w-full max-w-[175px]">
+              {/* Main box skeleton dengan clip-path yang sama */}
+              <div 
+                className="relative p-4 overflow-hidden transition-colors duration-200 bg-gray-200 dark:bg-gray-700 animate-pulse"
+                style={{
+                  clipPath: 'path("M0 129V24C0 10.7452 10.7452 0 24 0H151C164.255 0 175 10.7451 175 24V81.1644C175 93.9889 164.604 104.385 151.779 104.385C138.955 104.385 128.559 114.781 128.559 127.606V129C128.559 142.255 117.813 153 104.559 153H24C10.7452 153 0 142.255 0 129Z")',
+                  width: '100%',
+                  aspectRatio: '175/153',
+                  minHeight: '120px'
+                }}
+              >
+                <div className="relative space-y-1 sm:space-y-2 z-10">
+                  {/* Nama segment skeleton */}
                   <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+                  
+                  {/* Angka besar skeleton */}
                   <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded w-8"></div>
+                  
+                  {/* Label Products skeleton */}
                   <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
                 </div>
               </div>
-              {/* Icon skeleton overlapping */}
+              
+              {/* Icon circle skeleton */}
               <div className="absolute bottom-1 right-1 w-9 h-9 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"></div>
             </div>
           ))}
