@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw, AlertCircle, Package } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from 'next/navigation';
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 
 interface Segment {
   id: number;
@@ -13,10 +13,10 @@ interface Segment {
 }
 
 export const SegmentasiBisnis = () => {
-  const router = useRouter();
   const [segments, setSegments] = useState<Segment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { navigateTo } = useNavigateWithLoading();
 
 
   const fetchSegments = async () => {
@@ -49,7 +49,7 @@ export const SegmentasiBisnis = () => {
   };  
 
   const handleSegmentClick = (id: number) => {
-    router.push(`/admin/dashboard/segment/${id}`);
+    navigateTo(`/admin/dashboard/segment/${id}`);
   };
 
   useEffect(() => {

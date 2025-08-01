@@ -52,15 +52,14 @@ const EditDevHistoriForm: React.FC<EditDevHistoriFormProps> = ({
   const fetchProducts = async () => {
     try {
       const response = await fetch("/api/devhistori/produk");
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data.products || []);
-      } else {
-        toast.error("Gagal memuat data produk");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      setProducts(data.products || []);
     } catch (error) {
       console.error("Error fetching products:", error);
-      toast.error("Gagal memuat data produk");
+      toast.error(`Gagal memuat data produk: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
     } finally {
       setIsLoadingProducts(false);
     }

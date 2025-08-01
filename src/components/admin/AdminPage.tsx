@@ -4,10 +4,12 @@ import DashboardPages from "@/components/dashboard/DashboardPage";
 import { SegmentasiBisnis } from "@/components/dashboard/SegmentasiBisnis";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import React from "react";
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 
 export default function AdminPage() {
   
   const [user, setUser] = useState<unknown>(null);
+  const { navigateTo } = useNavigateWithLoading();
 
   useEffect(() => {
     fetch("/api/me")
@@ -15,13 +17,13 @@ export default function AdminPage() {
     .then(data => {
       if (user && typeof user === "object") {
         if (!data.authenticated) {
-          window.location.href = "/login";
+          navigateTo("/login");
         } else {
           setUser(data.user);
         }
       }
     });
-  }, [user]);
+  }, [navigateTo, user]);
 
   return (
     <div>
