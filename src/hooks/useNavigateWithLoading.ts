@@ -7,11 +7,7 @@ export function useNavigateWithLoading() {
 
   const navigateTo = (path: string) => {
     setIsNavigating(true);
-    
-    // Small delay to ensure loading state is visible
-    setTimeout(() => {
-      router.push(path);
-    }, 100);
+    router.push(path);
   };
 
   return { navigateTo };
