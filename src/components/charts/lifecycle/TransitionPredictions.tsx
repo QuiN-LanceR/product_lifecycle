@@ -80,11 +80,38 @@ export default function TransitionPredictions() {
       <div className="h-full overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 shadow-sm">
         <div className="px-5 pt-5 sm:px-6 sm:pt-6">
           <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-            <div className="space-y-3">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-72"></div>
+              </div>
+              <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+            
+            {/* Filter skeleton */}
+            <div className="flex gap-4 mb-4">
+              <div className="w-32 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              <div className="w-32 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            </div>
+            
+            {/* Predictions list skeleton */}
+            <div className="space-y-3 max-h-96 overflow-y-auto">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div key={i} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"></div>
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-4"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-24"></div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                    </div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

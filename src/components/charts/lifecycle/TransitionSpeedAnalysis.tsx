@@ -94,10 +94,17 @@ export default function TransitionSpeedAnalysis() {
       <div className="h-full overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 shadow-sm">
         <div className="px-5 pt-5 sm:px-6 sm:pt-6">
           <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-            <div className="h-80 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-44 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-56"></div>
+              </div>
+              <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
           </div>
+        </div>
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+          <div className="h-80 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
         </div>
       </div>
     );
