@@ -7,6 +7,8 @@ import ToastProvider from '@/components/toast/ToastProvider';
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
+import { TourProvider } from '@/components/tour/TourProvider';
+import { TourButton } from '@/components/tour/TourButton';
 
 export default function AdminLayout({
   children,
@@ -25,20 +27,24 @@ export default function AdminLayout({
   return (
     <ToastProvider>
       <UserProvider>
-        <div className="min-h-screen xl:flex">
-          {/* Sidebar and Backdrop */}
-          <AppSidebar />
-          <Backdrop />
-          {/* Main Content Area */}
-          <div
-            className={`flex-1 transition-all  duration-300 ease-in-out ${mainContentMargin}`}
-          >
-            {/* Header */}
-            <AppHeader />
-            {/* Page Content */}
-            <div className="p-4 md:p-6">{children}</div>
+        <TourProvider>
+          <div className="min-h-screen xl:flex">
+            {/* Sidebar and Backdrop */}
+            <AppSidebar />
+            <Backdrop />
+            {/* Main Content Area */}
+            <div
+              className={`flex-1 transition-all  duration-300 ease-in-out ${mainContentMargin}`}
+            >
+              {/* Header */}
+              <AppHeader />
+              {/* Page Content */}
+              <div className="p-4 md:p-6">{children}</div>
+            </div>
           </div>
-        </div>
+          {/* Tour Button */}
+          <TourButton />
+        </TourProvider>
       </UserProvider>   
     </ToastProvider>
   );

@@ -51,6 +51,7 @@ export default function UserDropdown() {
   return (
     <div className="relative">
       <button
+        data-tour="user-profile"
         onClick={toggleDropdown} 
         className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
