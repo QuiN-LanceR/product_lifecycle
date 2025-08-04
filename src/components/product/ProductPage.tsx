@@ -583,24 +583,50 @@ const ProductPage: React.FC = () => {
                 </svg>
               </div>
             </div>
-            
-            <div className="flex gap-2">
+          
+            <div className="flex gap-3">
+              {/* Add Product Button - Ghost Style dengan Blue Theme */}
               <button
                 onClick={handleAddProduct}
-                className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200 flex items-center gap-2"
+                className="group relative p-3 hover:bg-blue-100/60 dark:hover:bg-blue-900/20 border border-transparent hover:border-blue-300/60 dark:hover:border-blue-600/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-blue-400/40 transition-all duration-300 transform hover:scale-105 active:scale-95 backdrop-blur-sm overflow-hidden"
+                title="Add New Product"
               >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                {/* Subtle glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/0 via-blue-400/10 to-blue-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"></div>
+                
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-blue-300/10 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+                
+                <svg className="h-5 w-5 relative z-10 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                 </svg>
+                
+                {/* Tooltip on hover */}
+                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+                  Add Product
+                </div>
               </button>
               
+              {/* Import Button - Ghost Style dengan Green Theme */}
               <button
                 onClick={() => setShowImportModal(true)}
-                className="px-6 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200 flex items-center gap-2"
+                className="group relative p-3 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/20 border border-transparent hover:border-emerald-300/60 dark:hover:border-emerald-600/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:focus:ring-emerald-400/40 transition-all duration-300 transform hover:scale-105 active:scale-95 backdrop-blur-sm overflow-hidden"
+                title="Import Products"
               >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                {/* Subtle glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/0 via-emerald-400/10 to-emerald-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"></div>
+                
+                {/* Shimmer effect dengan delay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-emerald-300/10 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 delay-100"></div>
+                
+                <svg className="h-5 w-5 relative z-10 text-gray-500 dark:text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                 </svg>
+                
+                {/* Tooltip on hover */}
+                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+                  Import Data
+                </div>
               </button>
             </div>
           </div>
@@ -662,9 +688,24 @@ const ProductPage: React.FC = () => {
           <div className="flex items-end">
             <button
               onClick={clearFilters}
-              className="w-full px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 transition-colors duration-200"
+              className="group relative w-full px-4 py-2.5 hover:bg-gray-100/60 dark:hover:bg-gray-800/40 border border-transparent hover:border-gray-300/50 dark:hover:border-gray-600/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500/30 dark:focus:ring-gray-400/40 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] backdrop-blur-sm overflow-hidden flex items-center justify-center gap-2"
+              title="Clear all filters"
             >
-              Reset Filter
+              {/* Subtle glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-400/0 via-gray-400/8 to-gray-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg"></div>
+              
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 dark:via-gray-300/8 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+              
+              {/* Reset Icon */}
+              <svg className="h-4 w-4 relative z-10 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              
+              {/* Text */}
+              <span className="relative z-10 text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-300">
+                Reset Filter
+              </span>
             </button>
           </div>
         </div>
@@ -753,37 +794,37 @@ const ProductPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Action Buttons - SELALU DI BAWAH */}
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-100 dark:border-gray-600 mt-auto">
-                  <div className="grid grid-cols-3 gap-2">
+                {/* Action Button */}
+                <div className="px-4 py-3 bg-gray-50/30 dark:bg-gray-900/30 backdrop-blur-sm border-t border-gray-200/50 dark:border-gray-700/50 mt-auto">
+                  <div className="flex items-center justify-center gap-2">
                     <button
                       onClick={() => handleEdit(product)}
-                      className="w-full px-3 py-2 bg-yellow-500 dark:bg-yellow-600 text-white text-xs font-medium rounded-lg hover:bg-yellow-600 dark:hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-yellow-400 transition-colors duration-200 flex items-center justify-center"
+                      className="group relative p-3 hover:bg-orange-100/60 dark:hover:bg-orange-900/20 border border-transparent hover:border-orange-300/60 dark:hover:border-orange-600/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                      title="Edit Product"
                     >
-                      <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
-                      Edit
                     </button>
                     
                     <button
                       onClick={() => handleDelete(product.id)}
-                      className="w-full px-3 py-2 bg-red-500 dark:bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-600 dark:hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-colors duration-200 flex items-center justify-center"
+                      className="group relative p-3 hover:bg-red-100/60 dark:hover:bg-red-900/20 border border-transparent hover:border-red-300/60 dark:hover:border-red-600/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                      title="Delete Product"
                     >
-                      <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                      Hapus
                     </button>
                     
                     <button
                       onClick={() => handleViewAttachments(product)}
-                      className="w-full px-3 py-2 bg-green-500 dark:bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-600 dark:hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 transition-colors duration-200 flex items-center justify-center"
+                      className="group relative p-3 hover:bg-teal-100/60 dark:hover:bg-teal-900/20 border border-transparent hover:border-teal-300/60 dark:hover:border-teal-600/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                      title="View Files"
                     >
-                      <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                       </svg>
-                      Files
                     </button>
                   </div>
                 </div>

@@ -164,7 +164,11 @@ const AppSidebar: React.FC = () => {
                   onClick={() => handleNavigation(nav.path!)}
                   className={`menu-item group ${
                     isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                  } w-full text-left`}
+                  } w-full text-left ${
+                    !isExpanded && !isHovered
+                      ? "lg:justify-center"
+                      : "lg:justify-start"
+                  }`}
                 >
                   <span
                     className={`${
@@ -329,34 +333,33 @@ const AppSidebar: React.FC = () => {
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <Image
-                className="dark:hidden"
+                className=""
                 src="/images/admin/plniconplus.png"
                 alt="Logo"
-                width={80}
-                height={80}
-              />
+                width={70}
+                height={70}
+              />              
               <Image
-                className="hidden dark:block"
-                src="/images/admin/plniconplus.png"
+                src="/images/admin/product-lifecycle.png"
                 alt="Logo"
-                width={80}
-                height={80}
+                width={120}
+                height={120}
               />
-              <span className="text-xl font-bold text-gray-800 dark:text-white text-left">
-                PLC MANAGER
-              </span>
             </>
           ) : (
             <>
               <Image
                 src="/images/admin/plniconplus.png"
                 alt="Logo"
-                width={70}
-                height={70}
+                width={50}
+                height={50}
               />
-              <span className="text-sm font-bold text-gray-800 dark:text-white text-center hidden sm:inline">
-                PLC MANAGER
-              </span>
+              <Image
+                src="/images/admin/product-lifecycle.png"
+                alt="Logo"
+                width={100}
+                height={100}
+              />
             </>
           )}
         </Link>

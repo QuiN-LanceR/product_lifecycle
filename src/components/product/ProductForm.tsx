@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import DatePicker from '../form/date-picker';
 
 interface Product {
   id: number;
@@ -266,6 +267,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
       setSubmitLoading(false);
     }
   };
+  
+  // Handler untuk DatePicker
+  const handleDateChange = (selectedDates: Date[], dateStr: string) => {
+    setFormData(prev => ({ ...prev, tanggal_launch: dateStr }));
+    
+    // Clear error when user selects date
+    if (errors.tanggal_launch) {
+      setErrors(prev => ({ ...prev, tanggal_launch: '' }));
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -391,23 +402,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
         </div>
 
         {/* Tanggal Launch */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Tanggal Launch <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            name="tanggal_launch"
-            value={formData.tanggal_launch}
-            onChange={handleInputChange}
-            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 dark:bg-gray-800 dark:border-gray-600 dark:text-white ${
-              errors.tanggal_launch ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
-            style={{
-              colorScheme: 'light dark',
-              WebkitAppearance: 'none',
-              MozAppearance: 'textfield'
-            }}
+        <div>          
+          <DatePicker
+            id="tanggal_launch"
+            label="Tanggal Launch"
+            placeholder="Pilih tanggal launch"
+            defaultDate={formData.tanggal_launch || undefined}
+            onChange={handleDateChange}
           />
           {errors.tanggal_launch && (
             <p className="text-red-500 text-sm mt-1">{errors.tanggal_launch}</p>
