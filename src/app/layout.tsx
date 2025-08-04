@@ -7,6 +7,7 @@ import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { LoadingProvider } from '@/context/LoadingProvider';
 
+
 const inter = Inter({
   subsets: ['latin'],
 });
