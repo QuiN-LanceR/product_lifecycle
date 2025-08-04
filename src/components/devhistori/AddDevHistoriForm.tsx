@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Button from "@/components/ui/button/Button";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import DatePicker from '../form/date-picker';
 
 interface Product {
   id: number;
@@ -91,6 +92,11 @@ const AddDevHistoriForm: React.FC<AddDevHistoriFormProps> = ({
     }
   };
 
+  // Handler untuk DatePicker
+  const handleDateChange = (field: string) => (selectedDates: Date[], dateStr: string) => {
+    setFormData(prev => ({ ...prev, [field]: dateStr }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -139,29 +145,22 @@ const AddDevHistoriForm: React.FC<AddDevHistoriFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="tanggal_mulai" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Tanggal Mulai *
-          </label>
-          <input
+          <DatePicker
             id="tanggal_mulai"
-            type="date"
-            value={formData.tanggal_mulai}
-            onChange={(e) => handleInputChange("tanggal_mulai", e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            label="Tanggal Mulai"
+            placeholder="Pilih tanggal mulai"
+            defaultDate={formData.tanggal_mulai || undefined}
+            onChange={handleDateChange("tanggal_mulai")}
           />
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="tanggal_akhir" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Tanggal Akhir
-          </label>
-          <input
+          <DatePicker
             id="tanggal_akhir"
-            type="date"
-            value={formData.tanggal_akhir}
-            onChange={(e) => handleInputChange("tanggal_akhir", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            label="Tanggal Akhir"
+            placeholder="Pilih tanggal akhir"
+            defaultDate={formData.tanggal_akhir || undefined}
+            onChange={handleDateChange("tanggal_akhir")}
           />
         </div>
 
