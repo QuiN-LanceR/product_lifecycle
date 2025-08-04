@@ -6,7 +6,7 @@ export default function MasterProduct() {
     <div>
       <PageBreadcrumb pageTitle="Master Product" secondTitle="Product Catalog" />
       <div className="space-y-6">
-        <ProductPage />;
+        <ProductPage />
       </div>
     </div>
   );

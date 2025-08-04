@@ -21,72 +21,55 @@ export default function SidebarThemeToggle() {
     setHasInteracted(true);
     toggleTheme();
     
-    setTimeout(() => setIsToggling(false), 300);
+    setTimeout(() => setIsToggling(false), 200);
   };
 
-  // Auto-animate on mount for a cool intro effect
+  // Auto-animate on mount for a subtle intro effect
   useEffect(() => {
-    const timer = setTimeout(() => setHasInteracted(true), 500);
+    const timer = setTimeout(() => setHasInteracted(true), 300);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className={`transition-all duration-500 ease-out ${
+    <div className={`transition-all duration-300 ease-out ${
       isExpand 
         ? 'px-4 py-3' 
         : 'px-2 py-3 flex justify-center'
     }`}>
       {/* Main Toggle Container */}
       <div 
-        className={`relative overflow-hidden rounded-2xl transition-all duration-500 ease-out transform cursor-pointer ${
+        className={`relative overflow-hidden rounded-lg transition-all duration-300 ease-out transform cursor-pointer ${
           isExpand 
-            ? 'w-full min-w-[220px] h-14' 
-            : 'w-16 h-16 hover:scale-105'
+            ? 'w-full min-w-[200px] h-12' 
+            : 'w-12 h-12 hover:scale-105'
         } ${
-          hasInteracted ? 'shadow-lg hover:shadow-xl' : 'shadow-md'
+          hasInteracted ? 'shadow-sm hover:shadow-md' : 'shadow-sm'
         } ${
           theme === 'light'
-            ? 'bg-gradient-to-r from-orange-100 via-yellow-50 to-orange-100 border border-orange-200/50'
-            : 'bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 border border-slate-700/50'
+            ? 'bg-gray-50 border border-gray-200/80 hover:bg-gray-100'
+            : 'bg-gray-800 border border-gray-700/80 hover:bg-gray-750'
         }`}
         onClick={!isExpand ? (e: React.MouseEvent<HTMLDivElement>) => handleToggle(e as unknown as React.MouseEvent<HTMLButtonElement>) : undefined}
       >
-        {/* Animated Background Glow */}
-        <div className={`absolute inset-0 transition-opacity duration-700 ${
-          theme === 'light'
-            ? 'bg-gradient-to-r from-yellow-200/20 via-orange-200/30 to-yellow-200/20'
-            : 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10'
-        } ${hasInteracted ? 'opacity-100' : 'opacity-0'}`} />
         
         {/* Sliding Indicator */}
         <div 
-          className={`absolute top-2 bottom-2 rounded-xl transition-all duration-500 ease-out ${
+          className={`absolute top-1 bottom-1 rounded-md transition-all duration-300 ease-out ${
             isToggling ? 'scale-95' : 'scale-100'
           } ${
             theme === 'light' 
               ? isExpand 
-                ? 'left-2 right-1/2 mr-1' 
-                : 'left-2 right-2'
+                ? 'left-1 right-1/2 mr-0.5' 
+                : 'left-1 right-1'
               : isExpand
-                ? 'left-1/2 right-2 ml-1' 
-                : 'left-2 right-2'
+                ? 'left-1/2 right-1 ml-0.5' 
+                : 'left-1 right-1'
           } ${
             theme === 'light'
-              ? 'bg-gradient-to-br from-white via-orange-50 to-yellow-50 shadow-lg border border-orange-200/30'
-              : 'bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 shadow-xl border border-slate-600/50'
+              ? 'bg-white shadow-sm border border-gray-300/50'
+              : 'bg-gray-700 shadow-sm border border-gray-600/50'
           }`}
-          style={{
-            backdropFilter: 'blur(10px)',
-            filter: 'drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.15))'
-          }}
-        >
-          {/* Inner glow effect */}
-          <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${
-            theme === 'light'
-              ? 'bg-gradient-to-br from-yellow-200/30 to-orange-200/30'
-              : 'bg-gradient-to-br from-blue-400/20 to-purple-400/20'
-          } ${hasInteracted ? 'opacity-100' : 'opacity-0'}`} />
-        </div>
+        />
         
         {/* Toggle Content */}
         <div className="relative z-10 flex h-full">
@@ -94,44 +77,34 @@ export default function SidebarThemeToggle() {
           {!isExpand && (
             <div className="flex-1 flex items-center justify-center">
               {/* Current Theme Icon */}
-              <div className={`relative transition-all duration-300 ${
-                theme === 'light' ? 'animate-pulse' : 'animate-pulse'
-              }`}>
+              <div className="relative transition-all duration-200">
                 {theme === 'light' ? (
                   // Sun Icon for Light Mode
-                  <>
-                    <svg 
-                      width="28" 
-                      height="28" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`flex-shrink-0 transition-all duration-300 ${
-                        theme === 'light' ? 'text-orange-600' : 'text-gray-400'
-                      }`}
-                    >
-                      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" fill="currentColor"/>
-                      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" 
-                            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                    <div className="absolute inset-0 rounded-full bg-orange-400/20 blur-lg animate-pulse" />
-                  </>
+                  <svg 
+                    width="20" 
+                    height="20" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="flex-shrink-0 text-gray-600"
+                  >
+                    <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" fill="currentColor"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" 
+                          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
                 ) : (
                   // Moon Icon for Dark Mode
-                  <>
-                    <svg 
-                      width="28" 
-                      height="28" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      className="flex-shrink-0 text-blue-400"
-                    >
-                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" 
-                            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor"/>
-                    </svg>
-                    <div className="absolute inset-0 rounded-full bg-blue-400/20 blur-lg animate-pulse" />
-                  </>
+                  <svg 
+                    width="20" 
+                    height="20" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="flex-shrink-0 text-gray-300"
+                  >
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" 
+                          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor"/>
+                  </svg>
                 )}
               </div>
             </div>
@@ -148,23 +121,21 @@ export default function SidebarThemeToggle() {
                   if (theme !== 'light') handleToggle(e);
                 }}
                 disabled={isToggling}
-                className={`flex-1 flex items-center justify-center transition-all duration-300 rounded-xl group relative z-20 ${
+                className={`flex-1 flex items-center justify-center transition-all duration-200 rounded-md group relative z-20 ${
                   theme === 'light' 
-                    ? 'text-orange-600 dark:text-orange-400' 
+                    ? 'text-gray-700' 
                     : 'text-gray-400 hover:text-gray-300'
-                } gap-3 px-2 ${
-                  theme !== 'light' ? 'hover:bg-white/5 active:bg-white/10' : ''
+                } gap-2 px-2 ${
+                  theme !== 'light' ? 'hover:bg-white/5' : ''
                 }`}
               >
-                {/* Enhanced Sun Icon with Animation */}
-                <div className={`relative transition-all duration-300 ${
-                  theme === 'light' ? 'animate-pulse' : ''
-                } ${
-                  theme !== 'light' ? 'group-hover:scale-110 group-hover:rotate-12' : ''
+                {/* Sun Icon */}
+                <div className={`relative transition-all duration-200 ${
+                  theme !== 'light' ? 'group-hover:scale-110' : ''
                 }`}>
                   <svg 
-                    width="20" 
-                    height="20" 
+                    width="16" 
+                    height="16" 
                     viewBox="0 0 24 24" 
                     fill="none" 
                     xmlns="http://www.w3.org/2000/svg"
@@ -174,13 +145,9 @@ export default function SidebarThemeToggle() {
                     <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" 
                           stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                  {/* Subtle glow effect for active state */}
-                  {theme === 'light' && (
-                    <div className="absolute inset-0 rounded-full bg-orange-400/20 blur-lg animate-pulse" />
-                  )}
                 </div>
-                <span className={`text-sm font-semibold tracking-wide transition-all duration-300 ${
-                  theme === 'light' ? 'text-orange-700' : 'text-gray-400 group-hover:text-gray-300'
+                <span className={`text-sm font-medium transition-all duration-200 ${
+                  theme === 'light' ? 'text-gray-700' : 'text-gray-400 group-hover:text-gray-300'
                 }`}>
                   Light
                 </span>
@@ -194,32 +161,26 @@ export default function SidebarThemeToggle() {
                   if (theme !== 'dark') handleToggle(e);
                 }}
                 disabled={isToggling}
-                className={`flex-1 flex items-center justify-center gap-3 px-2 rounded-xl transition-all duration-300 group relative z-20 ${
+                className={`flex-1 flex items-center justify-center gap-2 px-2 rounded-md transition-all duration-200 group relative z-20 ${
                   theme === 'dark' 
-                    ? 'text-blue-400 dark:text-blue-300' 
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'text-gray-300' 
+                    : 'text-gray-500 hover:text-gray-700'
                 } ${
-                  theme !== 'dark' ? 'hover:bg-black/5 active:bg-black/10' : ''
+                  theme !== 'dark' ? 'hover:bg-black/5' : ''
                 }`}
               >
-                {/* Enhanced Moon Icon with Animation */}
-                <div className={`relative transition-all duration-300 ${
-                  theme === 'dark' ? 'animate-pulse' : ''
-                } ${
-                  theme !== 'dark' ? 'group-hover:scale-110 group-hover:-rotate-12' : ''
+                {/* Moon Icon */}
+                <div className={`relative transition-all duration-200 ${
+                  theme !== 'dark' ? 'group-hover:scale-110' : ''
                 }`}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" 
                           stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
                           className={theme === 'dark' ? 'fill-current' : ''}/>
                   </svg>
-                  {/* Subtle glow effect for active state */}
-                  {theme === 'dark' && (
-                    <div className="absolute inset-0 rounded-full bg-blue-400/20 blur-lg animate-pulse" />
-                  )}
                 </div>
-                <span className={`text-sm font-semibold tracking-wide transition-all duration-300 ${
-                  theme === 'dark' ? 'text-blue-400' : 'text-gray-400 group-hover:text-gray-600'
+                <span className={`text-sm font-medium transition-all duration-200 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-500 group-hover:text-gray-700'
                 }`}>
                   Dark
                 </span>
@@ -227,19 +188,6 @@ export default function SidebarThemeToggle() {
             </>
           )}
         </div>
-
-        {/* Decorative Elements */}
-        <div className={`absolute top-1 left-1 w-2 h-2 rounded-full transition-all duration-700 ${
-          theme === 'light'
-            ? 'bg-gradient-to-br from-yellow-400 to-orange-400 opacity-60'
-            : 'bg-gradient-to-br from-blue-400 to-purple-400 opacity-40'
-        } ${hasInteracted ? 'animate-pulse' : ''}`} />
-        
-        <div className={`absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full transition-all duration-700 delay-200 ${
-          theme === 'light'
-            ? 'bg-gradient-to-br from-orange-400 to-red-400 opacity-50'
-            : 'bg-gradient-to-br from-purple-400 to-pink-400 opacity-30'
-        } ${hasInteracted ? 'animate-pulse' : ''}`} />
       </div>
     </div>
   );
