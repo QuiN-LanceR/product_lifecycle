@@ -87,7 +87,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);  
 
   useEffect(() => {
     fetchDropdownOptions();
@@ -402,13 +402,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
         </div>
 
         {/* Tanggal Launch */}
-        <div>          
+        <div> 
           <DatePicker
             id="tanggal_launch"
             label="Tanggal Launch"
             placeholder="Pilih tanggal launch"
             defaultDate={formData.tanggal_launch || undefined}
             onChange={handleDateChange}
+            enableMonthYearSelector={true} // Fitur baru!
           />
           {errors.tanggal_launch && (
             <p className="text-red-500 text-sm mt-1">{errors.tanggal_launch}</p>

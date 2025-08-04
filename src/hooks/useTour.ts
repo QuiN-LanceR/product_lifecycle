@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface TourStep {
   target: string;
@@ -39,60 +39,113 @@ export const useTour = () => {
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [hasSeenTour, setHasSeenTour] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    // Check if user has seen the tour before
-    const tourCompleted = localStorage.getItem('tour-completed');
-    if (!tourCompleted) {
-      // Longer delay for tour start to ensure all components are fully rendered
-      const timer = setTimeout(() => {
-        // Double check that the target element exists before starting
-        const userProfileElement = document.querySelector('[data-tour="user-profile"]');
-        if (userProfileElement && userProfileElement.getBoundingClientRect().width > 0) {
-          setIsTourOpen(true);
-        } else {
-          // If element not ready, wait a bit more
-          const retryTimer = setTimeout(() => {
-            setIsTourOpen(true);
-          }, 1000);
-          return () => clearTimeout(retryTimer);
-        }
-      }, 2500); // Increased from 1000ms to 1500ms
-      
-      return () => clearTimeout(timer);
-    } else {
-      setHasSeenTour(true);
-    }
+  // Function to check if all tour elements are available
+  const checkTourElements = useCallback(() => {
+    const userProfileElement = document.querySelector('[data-tour="user-profile"]');
+    const dashboardElement = document.querySelector('[data-tour="dashboard-menu"]');
+    
+    console.log('Checking tour elements:', {
+      userProfile: !!userProfileElement,
+      dashboard: !!dashboardElement,
+      userProfileVisible: userProfileElement ? userProfileElement.getBoundingClientRect().width > 0 : false
+    });
+    
+    return userProfileElement && 
+           userProfileElement.getBoundingClientRect().width > 0 &&
+           dashboardElement;
   }, []);
 
-  const startTour = () => {
+  // Function to start tour with multiple retry attempts
+  const startTourWithDelay = useCallback(() => {
+    let attempts = 0;
+    const maxAttempts = 10;
+    const baseDelay = 500;
+    
+    const attemptStart = () => {
+      attempts++;
+      console.log(`Tour start attempt ${attempts}/${maxAttempts}`);
+      
+      if (checkTourElements()) {
+        console.log('All tour elements found, starting tour');
+        setIsTourOpen(true);
+        return;
+      }
+      
+      if (attempts < maxAttempts) {
+        const delay = baseDelay * attempts; // Increasing delay
+        console.log(`Retrying in ${delay}ms`);
+        setTimeout(attemptStart, delay);
+      } else {
+        console.log('Max attempts reached, tour will not start automatically');
+        // Still set hasSeenTour to true so manual button appears
+        setHasSeenTour(true);
+      }
+    };
+    
+    // Start first attempt after initial delay
+    setTimeout(attemptStart, 2000);
+  }, [checkTourElements]);
+
+  // Initialize tour state
+  useEffect(() => {
+    if (isInitialized) return;
+    
+    console.log('Initializing tour...');
+    const tourCompleted = localStorage.getItem('tour-completed');
+    console.log('Tour completed status:', tourCompleted);
+    
+    if (!tourCompleted) {
+      console.log('Tour not completed, will start automatically');
+      startTourWithDelay();
+    } else {
+      console.log('Tour already completed');
+      setHasSeenTour(true);
+    }
+    
+    setIsInitialized(true);
+  }, [isInitialized, startTourWithDelay]);
+
+  const startTour = useCallback(() => {
+    console.log('Manual tour start');
     setCurrentStep(0);
     setIsTourOpen(true);
-  };
+  }, []);
 
-  const closeTour = () => {
+  const closeTour = useCallback(() => {
+    console.log('Closing tour');
     setIsTourOpen(false);
     localStorage.setItem('tour-completed', 'true');
     setHasSeenTour(true);
-  };
+  }, []);
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (currentStep < TOUR_STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       closeTour();
     }
-  };
+  }, [currentStep, closeTour]);
 
-  const prevStep = () => {
+  const prevStep = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
-  };
+  }, [currentStep]);
 
-  const skipTour = () => {
+  const skipTour = useCallback(() => {
     closeTour();
-  };
+  }, [closeTour]);
+
+  const resetTour = useCallback(() => {
+    console.log('Resetting tour');
+    localStorage.removeItem('tour-completed');
+    setHasSeenTour(false);
+    setIsTourOpen(false);
+    setCurrentStep(0);
+    setIsInitialized(false); // This will trigger re-initialization
+  }, []);
 
   return {
     isTourOpen,
@@ -103,6 +156,7 @@ export const useTour = () => {
     closeTour,
     nextStep,
     prevStep,
-    skipTour
+    skipTour,
+    resetTour
   };
 };
