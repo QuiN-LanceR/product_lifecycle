@@ -146,9 +146,9 @@ export default function UserMetaCard() {
               Update your details to keep your profile up-to-date.
             </p>
           </div>
-          <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
-            <div className="mt-7">
-              <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
+          <div className="custom-scrollbar h-[300px] overflow-y-auto px-2">
+            <div className="mt-3">
+              <h5 className="mb-3 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
                 Personal Information
               </h5>
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
@@ -169,7 +169,7 @@ export default function UserMetaCard() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+          <div className="flex items-center gap-3 px-2 lg:justify-end">
             <Button size="sm" variant="outline" onClick={closeModal}>
               Close
             </Button>
