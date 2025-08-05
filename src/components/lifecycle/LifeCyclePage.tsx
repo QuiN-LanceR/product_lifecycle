@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import ProductDistribution from "@/components/charts/lifecycle/productdistribution/ProductDistribution";
 import TransitionMatrix  from "@/components/charts/lifecycle/transitionmatrix/TransitionMatrix";
-import LifecycleTimeline from "@/components/charts/lifecycle/LifecycleTimeline";
+import LifecycleTimeline from "@/components/charts/lifecycle/timeline/LifecycleTimeline";
 import React from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useWindowSize } from "@/hooks/useWindowSize";

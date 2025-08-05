@@ -4,7 +4,7 @@ import ProductDistribution from "@/components/charts/lifecycle/productdistributi
 import TransitionMatrix from "@/components/charts/lifecycle/transitionmatrix/TransitionMatrix";
 import TransitionSpeedAnalysis from "@/components/charts/lifecycle/TransitionSpeedAnalysis";
 import TransitionPredictions from "@/components/charts/lifecycle/TransitionPredictions";
-import LifecycleTimeline from "@/components/charts/lifecycle/LifecycleTimeline";
+import LifecycleTimeline from "@/components/charts/lifecycle/timeline/LifecycleTimeline";
 import React from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useWindowSize } from "@/hooks/useWindowSize";
@@ -80,38 +80,38 @@ export default function LifeCyclePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Product Distribution */}
             <div className="w-full">
-              <div className="h-[520px] w-full">
+              <div className="h-[480px] w-full">
                 <ProductDistribution key={`product-${windowSize.width}`} />
               </div>
             </div>
             
             {/* Transition Matrix */}
             <div className="w-full">
-              <div className="h-[520px] w-full">
+              <div className="h-[480px] w-full">
                 <TransitionMatrix key={`matrix-${windowSize.width}`} />
               </div>
             </div>
           </div>
 
-          {/* Middle Row - Lifecycle Timeline (Full Width) */}
-          <div className="w-full">
-            <div className="h-[420px] w-full">
+          {/* Middle Row - Lifecycle Timeline (Full Width) - Reduced Height */}
+          <div className="w-full mt-10 mb-20">
+            <div className="h-[360px] w-full">
               <LifecycleTimeline key={`timeline-${windowSize.width}`} />
             </div>
           </div>
 
           {/* Bottom Row - Speed Analysis & Predictions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6   mt-10 mb-10">
             {/* Speed Analysis */}
             <div className="w-full">
-              <div className="h-[480px] w-full">
+              <div className="h-[440px] w-full">
                 <TransitionSpeedAnalysis key={`speed-${windowSize.width}`} />
               </div>
             </div>
             
             {/* Predictions */}
             <div className="w-full">
-              <div className="h-[480px] w-full">
+              <div className="h-[440px] w-full">
                 <TransitionPredictions key={`predictions-${windowSize.width}`} />
               </div>
             </div>
