@@ -317,28 +317,26 @@ export default function TableMasterIntervalStage({ currentPage, onTotalChange }:
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     {currentRole === 'Admin' ? (
-                        <div className="flex justify-center gap-2">
-                        <Button
-                            size="sm"
-                            onClick={() => handleEdit(intervalStage)}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg 
-                                    shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(intervalStage)}
+                          className="group relative p-3 hover:bg-orange-100/60 dark:hover:bg-orange-900/20 border border-transparent hover:border-orange-300/60 dark:hover:border-orange-600/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                          title="Edit Interval"
                         >
-                            <Pencil size={16} />
-                        </Button>
-                        <Button
-                            size="sm"
-                            onClick={() => handleDelete(intervalStage.id)}
-                            className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg 
-                                    shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                          <Pencil className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-200" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(intervalStage.id)}
+                          className="group relative p-3 hover:bg-red-100/60 dark:hover:bg-red-900/20 border border-transparent hover:border-red-300/60 dark:hover:border-red-600/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                          title="Delete Interval"
                         >
-                            <Trash size={16} />
-                        </Button>
-                        </div>
+                          <Trash className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-200" />
+                        </button>
+                      </div>
                     ) : (
-                        <span className="text-gray-400 text-sm italic">No Action</span>
+                      <span className="text-gray-400 text-sm italic">Tidak ada aksi</span>
                     )}
-                    </td>
+                  </td>
                 </tr>
               ))
             )}
