@@ -109,8 +109,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [product]);
 
-  // PERBAIKAN: Menggunakan response langsung tanpa .data
-  const fetchDropdownOptions = async () => {
+   const fetchDropdownOptions = async () => {
     setLoadingOptions({ kategori: true, segmen: true, stage: true });
     
     try {
@@ -122,17 +121,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       if (kategoriRes.ok) {
         const kategoriData = await kategoriRes.json();
-        setKategoriOptions(kategoriData || []); // Langsung gunakan response
+        setKategoriOptions(kategoriData.data || []); // Akses dari .data
       }
 
       if (segmenRes.ok) {
         const segmenData = await segmenRes.json();
-        setSegmenOptions(segmenData || []); // Langsung gunakan response
+        setSegmenOptions(segmenData.data || []); // Akses dari .data
       }
 
       if (stageRes.ok) {
         const stageData = await stageRes.json();
-        setStageOptions(stageData || []); // Langsung gunakan response
+        setStageOptions(stageData.data || []); // Akses dari .data
       }
     } catch (error) {
       console.error('Error fetching dropdown options:', error);
@@ -259,10 +258,29 @@ const ProductForm: React.FC<ProductFormProps> = ({
         onSuccess();
       }
       
-      Swal.fire("Berhasil", product ? "Produk berhasil diperbarui" : "Produk berhasil ditambahkan", "success");
+      Swal.fire({
+        title: "Berhasil!",
+        text: product ? "Produk berhasil diperbarui" : "Produk berhasil ditambahkan",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+        customClass: {
+          container: 'swal2-container-custom-z-index'
+        }
+      });
     } catch (error) {
       console.error('Error submitting form:', error);
-      Swal.fire("Gagal", "Terjadi kesalahan saat menyimpan produk", "error");
+      
+      Swal.fire({
+        title: "Gagal!",
+        text: "Terjadi kesalahan saat menyimpan produk",
+        icon: "error",
+        timer: 2000,
+        showConfirmButton: false,
+        customClass: {
+          container: 'swal2-container-custom-z-index'
+        }
+      });
     } finally {
       setSubmitLoading(false);
     }

@@ -196,8 +196,15 @@ const DashboardPages = () => {
         </button>
       </div>
       
-      {/* Stage Cards - Grid 4 Kolom */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stage Cards - Dynamic Grid */}
+      <div className={`grid gap-6 ${
+        stats.stages.length === 1 ? 'grid-cols-1' :
+        stats.stages.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
+        stats.stages.length === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
+        stats.stages.length === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' :
+        stats.stages.length === 5 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-5' :
+        'grid-cols-1 md:grid-cols-2 lg:grid-cols-6'
+      }`}>
         {stats.stages.map((stage, index) => {
           const colors = getStageColors(index);
           return (
