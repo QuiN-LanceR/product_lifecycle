@@ -51,77 +51,56 @@ export async function POST(req: NextRequest) {
       `;
       
       const productResult = await client.query(insertProductQuery, [
-        nama_produk, 
-        deskripsi || '', 
-        id_kategori, 
-        id_segmen, 
-        id_stage, 
-        harga, 
-        tanggal_launch, 
-        customer, 
-        createdAt
+        nama_produk, deskripsi || '', id_kategori, id_segmen, id_stage, harga, tanggal_launch, customer, createdAt
       ]);
       
       const productId = productResult.rows[0].id;
-      
+
       // Upload files jika ada
       if (files && files.length > 0) {
         for (const file of files) {
-          if (file && file.size > 0) {
-            try {
-              const bytes = await file.arrayBuffer();
-              const buffer = Buffer.from(bytes);
-          
-              const uploadDir = path.join(process.cwd(), "public/pdf");
-              if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
-              
-              const fileName = `${Date.now()}_${file.name}`;
-              const filePath = path.join(uploadDir, fileName);
-          
-              await writeFile(filePath, buffer);
-              
-              // Insert attachment
-              const insertAttachmentQuery = `
-                INSERT INTO tbl_attachment_produk (produk_id, nama_attachment, url_attachment, size, type, created_at)
-                VALUES ($1, $2, $3, $4, $5, $6)
-              `;
-              
-              await client.query(insertAttachmentQuery, [
-                productId,
-                file.name,
-                `/pdf/${fileName}`,
-                file.size,
-                file.type,
-                createdAt
-              ]);
-            } catch (err) {
-              console.error("Error writing file:", err);
-              // Continue with other files, don't break the transaction
+          if (file.size > 0) {
+            const bytes = await file.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+            
+            const uploadDir = path.join(process.cwd(), "public/uploads/products");
+            if (!existsSync(uploadDir)) {
+              mkdirSync(uploadDir, { recursive: true });
             }
+            
+            const fileName = `${Date.now()}-${file.name}`;
+            const filePath = path.join(uploadDir, fileName);
+            await writeFile(filePath, buffer);
+            
+            // Insert attachment
+            await client.query(
+              `INSERT INTO tbl_attachment_produk (produk_id, nama_attachment, url_attachment, size, type, created_at)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [productId, file.name, `/uploads/products/${fileName}`, file.size, file.type, createdAt]
+            );
           }
         }
       }
       
       await client.query('COMMIT');
-
-      return NextResponse.json(
-        { success: true, message: 'Produk berhasil dibuat.' },
-        { status: 201 }
-      );
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Produk berhasil ditambahkan',
+        data: { id: productId }
+      });
+      
     } catch (error) {
       await client.query('ROLLBACK');
-      console.error('Gagal membuat produk:', error);
-      return NextResponse.json(
-        { success: false, message: 'Terjadi kesalahan server.' },
-        { status: 500 }
-      );
+      throw error;
     } finally {
       client.release();
     }
+    
   } catch (error) {
-    console.error('Gagal membuat produk:', error);
+    console.error('Add product error:', error);
     return NextResponse.json(
-      { success: false, message: 'Terjadi kesalahan server.' },
+      { success: false, message: 'Gagal menambahkan produk' },
       { status: 500 }
     );
   }

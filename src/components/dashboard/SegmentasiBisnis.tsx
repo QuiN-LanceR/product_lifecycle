@@ -75,7 +75,7 @@ export const SegmentasiBisnis = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
           {[...Array(5)].map((_, index) => (
-            <div key={`segment-skeleton-${index}`} className="relative w-full max-w-[175px]">
+            <div key={`segment-skeleton-${index}`} className="relative w-full max-w-[175px] mx-auto">
               {/* Main box skeleton dengan clip-path yang sama */}
               <div 
                 className="relative p-4 overflow-hidden transition-colors duration-200 bg-gray-200 dark:bg-gray-700 animate-pulse"
@@ -155,14 +155,21 @@ export const SegmentasiBisnis = () => {
       </div>
 
       {segments && segments.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+        <div className={`grid gap-4 ${
+          segments.length === 1 ? 'grid-cols-1' :
+          segments.length === 2 ? 'grid-cols-1 sm:grid-cols-2' :
+          segments.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+          segments.length === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' :
+          segments.length === 5 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5' :
+          segments.length === 6 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6' :
+          'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+        }`}>
           {segments.map((segment) => (
             <div 
               key={segment.id} 
-              className="relative w-full max-w-[175px] cursor-pointer transform hover:scale-105 transition-all duration-300"
+              className="relative w-full max-w-[175px] mx-auto cursor-pointer transform hover:scale-105 transition-all duration-300"
               onClick={() => handleSegmentClick(segment.id)}
             >
-              {/* Main box dengan background yang responsive untuk dark mode */}
               {/* Main box dengan background yang responsive untuk dark mode */}
               <div 
                 className="relative p-4 overflow-hidden transition-colors duration-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500"
