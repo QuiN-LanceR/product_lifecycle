@@ -72,7 +72,6 @@ export default function LifecycleTimeline() {
   const [isDark, setIsDark] = useState(false);
   const [timelineData, setTimelineData] = useState<TimelineDataset[]>([]);
   const [yearRange, setYearRange] = useState({ min: 2018, max: 2025 });
-  const [lastUpdated, setLastUpdated] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,7 +109,6 @@ export default function LifecycleTimeline() {
       if (result.success) {
         setTimelineData(result.data.datasets);
         setYearRange(result.data.yearRange);
-        setLastUpdated(result.data.lastUpdated);
       } else {
         throw new Error('Failed to fetch timeline data');
       }
@@ -358,11 +356,6 @@ export default function LifecycleTimeline() {
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Timeline visualization of product launches across different segments
             </p>
-            {lastUpdated && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                Last updated: {lastUpdated}
-              </p>
-            )}
           </div>
 
           <div className="relative inline-block">

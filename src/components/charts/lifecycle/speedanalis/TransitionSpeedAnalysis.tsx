@@ -276,7 +276,7 @@ const TransitionSpeedAnalysis: React.FC = () => {
     <div className="w-full space-y-6">
       {/* Chart Container */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-        <div className="h-[600px]">
+        <div className="h-[500px]">
           {chartData && (
             <Bar data={chartData} options={chartOptions} />
           )}

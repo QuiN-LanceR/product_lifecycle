@@ -96,7 +96,7 @@ const ProductDistributionChart: React.FC<ProductDistributionChartProps> = ({
   chartOptions
 }) => {
   return (
-    <div className="relative h-80 mb-4">
+    <div className="relative h-[410px] mb-4">
       <Doughnut 
         data={chartData} 
         options={{
