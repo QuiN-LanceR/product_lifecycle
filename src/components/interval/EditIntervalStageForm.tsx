@@ -44,7 +44,7 @@ export default function EditIntervalStageForm({ intervalStage, onSuccess, onCanc
       const response = await fetch('/api/produk/stages/get');
       if (response.ok) {
         const data = await response.json();
-        setStages(data || []);
+        setStages(data.data || []);
       }
     } catch (error) {
       console.error('Error fetching stages:', error);

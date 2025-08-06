@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import ProductDistribution from "@/components/charts/lifecycle/productdistribution/ProductDistribution";
-import TransitionMatrix  from "@/components/charts/lifecycle/transitionmatrix/TransitionMatrix";
+import TransitionMatrix  from "@/components/charts/lifecycle/matrix/TransitionMatrix";
 import LifecycleTimeline from "@/components/charts/lifecycle/timeline/LifecycleTimeline";
 import React from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";

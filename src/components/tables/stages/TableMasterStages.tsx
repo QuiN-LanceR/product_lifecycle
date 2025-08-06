@@ -385,7 +385,7 @@ export default function TableMasterStages({ currentPage, onTotalChange }: Props)
       <Modal 
         isOpen={isOpen} 
         onClose={handleCloseEdit} 
-        className="max-w-md p-6 bg-white dark:bg-gray-800 rounded-xl shadow-2xl"
+        className="max-w-3xl p-6 bg-white dark:bg-gray-800 rounded-xl shadow-2xl"
       >
         {editingStage ? (
           <EditStagesForm

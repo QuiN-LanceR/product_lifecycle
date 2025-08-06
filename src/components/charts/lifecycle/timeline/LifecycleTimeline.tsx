@@ -180,7 +180,6 @@ export default function LifecycleTimeline() {
   }
 
   const handleExport = () => {
-    // TODO: Implement export functionality
     console.log('Export timeline data');
     closeDropdown();
   };
@@ -226,9 +225,7 @@ export default function LifecycleTimeline() {
             return context[0].dataset.label;
           },
           label: function(context) {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            // Gunakan nilai asli tanpa jitter untuk tooltip
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const month = months[Math.round(context.parsed.x) - 1];
             const year = Math.round(context.parsed.y);
             const dataPoint = context.raw as TimelineDataPoint;
@@ -262,8 +259,7 @@ export default function LifecycleTimeline() {
             family: 'Outfit, sans-serif'
           },
           callback: function(value) {
-            const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const roundedValue = Math.round(value as number);
             return months[roundedValue] || '';
           }
@@ -404,7 +400,7 @@ export default function LifecycleTimeline() {
       </div>
 
       <div className="px-5 pb-5 sm:px-6 sm:pb-6">
-        <div className="relative h-64"> {/* Reduced from h-80 to h-64 */}
+        <div className="relative h-64">
           {timelineData.length > 0 ? (
             <Scatter data={chartData} options={options} />
           ) : (

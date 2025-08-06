@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package } from 'lucide-react';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
+import Pagination from '@/components/tables/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 
 interface Product {
   id: number;
@@ -18,6 +20,14 @@ const AllProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalProducts, setTotalProducts] = useState<number>(0);
+
+  // Pagination dengan 5 item per halaman
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedProducts,
+    goToPage
+  } = usePagination({ data: products, itemsPerPage: 5 });
 
   // Fetch all products
   useEffect(() => {
@@ -117,40 +127,56 @@ const AllProductsPage = () => {
               <p className="text-gray-500 dark:text-gray-400">Belum ada produk</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Produk</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Stage</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Segmen</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Tanggal Dibuat</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => (
-                    <tr key={product.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-gray-900 dark:text-white">{product.name}</div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStageBadgeColor(product.stage)}`}>
-                          {product.stage}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSegmentBadgeColor(product.segment)}`}>
-                          {product.segment}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-500 dark:text-gray-400">
-                        {new Date(product.created_at).toLocaleDateString('id-ID')}
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Produk</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Stage</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Segmen</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Tanggal Dibuat</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {paginatedProducts.map((product) => (
+                      <tr key={product.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="py-3 px-4">
+                          <div className="font-medium text-gray-900 dark:text-white">{product.name}</div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStageBadgeColor(product.stage)}`}>
+                            {product.stage}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSegmentBadgeColor(product.segment)}`}>
+                            {product.segment}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-500 dark:text-gray-400">
+                          {new Date(product.created_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+                showInfo={true}
+                totalItems={products.length}
+                itemsPerPage={5}
+              />
+            </>
           )}
         </div>
       </div>
