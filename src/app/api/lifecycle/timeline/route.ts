@@ -150,8 +150,8 @@ export async function GET() {
       }
       
       // Add jitter untuk menyebarkan titik yang bertumpuk
-      const monthJitter = (Math.random() - 0.5) * 0.6; // Random offset -0.3 to +0.3
-      const yearJitter = (Math.random() - 0.5) * 0.8;  // Random offset -0.4 to +0.4
+      const monthJitter = (Math.random() - 0.5) * 1.0;  // ±0.5
+      const yearJitter = (Math.random() - 0.5) * 0.6;   // ±0.3
       
       timelineData[segmen].data.push({
         x: parseInt(row.timeline_month) + monthJitter, // Bulan + jitter

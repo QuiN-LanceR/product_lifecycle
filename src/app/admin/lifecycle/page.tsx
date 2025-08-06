@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import ProductDistribution from "@/components/charts/lifecycle/productdistribution/ProductDistribution";
-import TransitionMatrix from "@/components/charts/lifecycle/transitionmatrix/TransitionMatrix";
-import TransitionSpeedAnalysis from "@/components/charts/lifecycle/TransitionSpeedAnalysis";
+import TransitionMatrix from "@/components/charts/lifecycle/matrix/TransitionMatrix";
+import TransitionSpeedAnalysis from "@/components/charts/lifecycle/speedanalis/TransitionSpeedAnalysis";
 import TransitionPredictions from "@/components/charts/lifecycle/TransitionPredictions";
 import LifecycleTimeline from "@/components/charts/lifecycle/timeline/LifecycleTimeline";
 import React from "react";
@@ -12,6 +12,7 @@ import { useWindowSize } from "@/hooks/useWindowSize";
 export default function LifeCyclePage() {
   const [, setUser] = useState<unknown>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const windowSize = useWindowSize();
 
   useEffect(() => {
@@ -35,6 +36,37 @@ export default function LifeCyclePage() {
 
     checkAuth();
   }, []);
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch('/api/lifecycle/dashboard/export-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lifecycle-dashboard-${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        throw new Error('Failed to export PDF');
+      }
+    } catch (error) {
+      console.error('Export PDF error:', error);
+      alert('Gagal mengekspor PDF. Silakan coba lagi.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -64,6 +96,28 @@ export default function LifeCyclePage() {
               </p>
             </div>
             <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+              {/* Download PDF Button */}
+              <button
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+              >
+                <svg 
+                  className="w-4 h-4 mr-2" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                  />
+                </svg>
+                {isExporting ? 'Exporting...' : 'Download PDF'}
+              </button>
+              
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
@@ -104,49 +158,15 @@ export default function LifeCyclePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6   mt-10 mb-10">
             {/* Speed Analysis */}
             <div className="w-full">
-              <div className="h-[440px] w-full">
+              <div className="h-[650px] w-full">
                 <TransitionSpeedAnalysis key={`speed-${windowSize.width}`} />
               </div>
             </div>
             
             {/* Predictions */}
             <div className="w-full">
-              <div className="h-[440px] w-full">
+              <div className="h-[650px] w-full">
                 <TransitionPredictions key={`predictions-${windowSize.width}`} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Info */}
-        <div className="mt-8 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-cyan-200 dark:border-cyan-800 transition-colors duration-200">
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-cyan-100 dark:bg-cyan-800 rounded-lg flex items-center justify-center">
-                <svg className="h-5 w-5 text-cyan-600 dark:text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-            <div className="flex-1">
-              <h4 className="text-base font-semibold text-cyan-800 dark:text-cyan-200">
-                Dashboard Information
-              </h4>
-              <p className="mt-2 text-sm text-cyan-700 dark:text-cyan-300 leading-relaxed">
-                This dashboard provides real-time insights into product lifecycle management. 
-                Data is automatically updated and reflects the current state of all products in the system.
-                Use the interactive charts to explore trends, analyze transitions, and make data-driven decisions.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 dark:bg-cyan-800 text-cyan-800 dark:text-cyan-200">
-                  Real-time Data
-                </span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
-                  Interactive Charts
-                </span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200">
-                  Export Ready
-                </span>
               </div>
             </div>
           </div>

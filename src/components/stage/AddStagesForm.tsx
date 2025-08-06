@@ -147,97 +147,102 @@ export default function AddStagesForm({ onSuccess, onCancel }: AddStageFormProps
           {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
         </div>
 
-        {/* Icon Light Upload */}
+        {/* Icon Upload Section - Horizontal Layout */}
         <div className="mb-4">
-          <Label htmlFor="icon_light">Icon Light</Label>
-          <input
-            id="icon_light"
-            name="icon_light"
-            type="file"
-            accept=".svg,.png,.jpg,.jpeg"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileUpload(file, 'light');
-            }}
-            className="block w-full text-sm text-gray-500 dark:text-gray-400
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-lg file:border-0
-              file:text-sm file:font-medium
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100
-              dark:file:bg-blue-900/20 dark:file:text-blue-400
-              dark:hover:file:bg-blue-900/30"
-          />
-          {uploadingLight && (
-            <p className="text-sm text-blue-600 dark:text-blue-400">Mengupload...</p>
-          )}
-          {iconLightPreview && (
-            <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Preview:</p>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white border border-gray-300 rounded-lg flex items-center justify-center">
-                  <Image 
-                    src={iconLightPreview} 
-                    alt="Light icon" 
-                    width={32} 
-                    height={32} 
-                    className="w-8 h-8 object-contain" 
-                  />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Icon Light Upload */}
+            <div className="mb-4">
+              <Label htmlFor="icon_light">Icon Light</Label>
+              <input
+                id="icon_light"
+                name="icon_light"
+                type="file"
+                accept=".svg,.png,.jpg,.jpeg"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, 'light');
+                }}
+                className="block w-full text-sm text-gray-500 dark:text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-medium
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100
+                  dark:file:bg-blue-900/20 dark:file:text-blue-400
+                  dark:hover:file:bg-blue-900/30"
+              />
+              {uploadingLight && (
+                <p className="text-sm text-blue-600 dark:text-blue-400">Mengupload...</p>
+              )}
+              {iconLightPreview && (
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Preview:</p>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-white border border-gray-300 rounded-lg flex items-center justify-center">
+                      <Image 
+                        src={iconLightPreview} 
+                        alt="Light icon" 
+                        width={32} 
+                        height={32} 
+                        className="w-8 h-8 object-contain" 
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Light Theme</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{iconLight}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Light Theme</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{iconLight}</p>
-                </div>
-              </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Icon Dark Upload */}
-        <div className="mb-4">
-          <Label htmlFor="icon_dark">Icon Dark</Label>
-          <input
-            id="icon_dark"
-            name="icon_dark"
-            type="file"
-            accept=".svg,.png,.jpg,.jpeg"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileUpload(file, 'dark');
-            }}
-            className="block w-full text-sm text-gray-500 dark:text-gray-400
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-lg file:border-0
-              file:text-sm file:font-medium
-              file:bg-purple-50 file:text-purple-700
-              hover:file:bg-purple-100
-              dark:file:bg-purple-900/20 dark:file:text-purple-400
-              dark:hover:file:bg-purple-900/30"
-          />
-          {uploadingDark && (
-            <p className="text-sm text-blue-600 dark:text-blue-400">Mengupload...</p>
-          )}
-          {iconDarkPreview && (
-            <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Preview:</p>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gray-900 border border-gray-600 rounded-lg flex items-center justify-center">
-                  <Image 
-                    src={iconDarkPreview} 
-                    alt="Dark icon" 
-                    width={32} 
-                    height={32} 
-                    className="w-8 h-8 object-contain" 
-                  />
+            {/* Icon Dark Upload */}
+            <div className="mb-4">
+              <Label htmlFor="icon_dark">Icon Dark</Label>
+              <input
+                id="icon_dark"
+                name="icon_dark"
+                type="file"
+                accept=".svg,.png,.jpg,.jpeg"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, 'dark');
+                }}
+                className="block w-full text-sm text-gray-500 dark:text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-medium
+                  file:bg-purple-50 file:text-purple-700
+                  hover:file:bg-purple-100
+                  dark:file:bg-purple-900/20 dark:file:text-purple-400
+                  dark:hover:file:bg-purple-900/30"
+              />
+              {uploadingDark && (
+                <p className="text-sm text-blue-600 dark:text-blue-400">Mengupload...</p>
+              )}
+              {iconDarkPreview && (
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Preview:</p>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-900 border border-gray-600 rounded-lg flex items-center justify-center">
+                      <Image 
+                        src={iconDarkPreview} 
+                        alt="Dark icon" 
+                        width={32} 
+                        height={32} 
+                        className="w-8 h-8 object-contain" 
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Dark Theme</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{iconDark}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Dark Theme</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{iconDark}</p>
-                </div>
-              </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        </div>        
 
         <div className="flex justify-end gap-2 mt-6">
           <Button
