@@ -39,7 +39,10 @@ const ProductDistribution: React.FC = () => {
         </div>
       )}
       
-      <ProductDistributionHeader/>
+      <ProductDistributionHeader
+        totalProducts={data.stats.total}
+      />
+      
       <ProductDistributionChart 
         chartData={chartData} 
         chartOptions={chartOptions} 

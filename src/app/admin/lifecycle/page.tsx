@@ -155,7 +155,7 @@ export default function LifeCyclePage() {
 
           {/* Middle Row - Lifecycle Timeline (Full Width) - Reduced Height */}
           <div className="w-full">
-            <div className="h-[380px] w-full">
+            <div className="h-[530px] w-full">
               <LifecycleTimeline key={`timeline-${windowSize.width}`} />
             </div>
           </div>
