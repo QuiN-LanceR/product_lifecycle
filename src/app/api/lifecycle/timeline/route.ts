@@ -34,9 +34,7 @@ interface TimelineDataset {
 
 export async function GET() {
   const client = await getPool().connect();
-  try {
-    console.log('Starting timeline API request...');
-    
+  try {    
     // Query untuk mendapatkan timeline data berdasarkan stage history dan tanggal stage
     const timelineQuery = `
       WITH product_timeline AS (
@@ -201,15 +199,9 @@ export async function GET() {
       }
     };
     
-    console.log('Timeline API response:', {
-      datasetsCount: responseData.data.datasets.length,
-      yearRange: responseData.data.yearRange
-    });
-    
     return NextResponse.json(responseData);
 
   } catch (error) {
-    console.error('Database error in timeline API:', error);
     return NextResponse.json(
       { 
         success: false, 
