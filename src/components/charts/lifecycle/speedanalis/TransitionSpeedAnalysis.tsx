@@ -13,8 +13,9 @@ import {
   Legend,
   ChartOptions,
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
 import { useTheme } from '@/context/ThemeContext';
+import TransitionSpeedAnalysisHeader from './TransitionSpeedAnalysisHeader';
+import TransitionSpeedAnalysisChart from './TransitionSpeedAnalysisChart';
 
 ChartJS.register(
   CategoryScale,
@@ -25,15 +26,33 @@ ChartJS.register(
   Legend
 );
 
-interface StageData {
-  stage: string;
-  intervalDays: number;
-  segmen: string;
+interface TransitionData {
+  transition: string;
+  actualDuration: number;
+  plannedDuration: number;
+  efficiency: number;
+  totalTransitions: number;
+  standardDeviation?: number;
+  minDuration?: number;
+  maxDuration?: number;
+  medianDuration?: number;
 }
 
 interface ApiResponse {
   success: boolean;
-  data: StageData[];
+  analysisType: string;
+  timeUnit: string;
+  data: {
+    segments: string[];
+    transitions: string[];
+    timeUnit: string;
+    data: { [key: string]: TransitionData[] };
+    summary: {
+      totalSegments: number;
+      totalTransitions: number;
+      avgEfficiency: number;
+    };
+  };
 }
 
 const TransitionSpeedAnalysis: React.FC = () => {
@@ -43,35 +62,29 @@ const TransitionSpeedAnalysis: React.FC = () => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
 
-  const stageColors = {
-    'Introduction': '#3B82F6',
-    'Growth': '#10B981', 
-    'Maturity': '#F59E0B',
-    'Decline': '#EF4444'
-  };
+  // Fixed values - no more filters
+  const timeUnit = 'months';
+  const analysisType = 'duration';
 
-  const stages = ['Introduction', 'Growth', 'Maturity', 'Decline'];
-  const segments = ['Distribusi', 'EP & Pembangkit', 'Korporat', 'Pelayanan Pelanggan', 'Transmisi'];
+  const transitionColors = {
+    'Introduction → Growth': '#3B82F6',
+    'Growth → Maturity': '#10B981', 
+    'Maturity → Decline': '#F59E0B'
+  };
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Simulasi data dummy untuk grouped bar chart
-      const dummyData: StageData[] = [];
+      const response = await fetch(`/api/lifecycle/transition-speed?unit=${timeUnit}&type=${analysisType}`);
       
-      segments.forEach(segment => {
-        stages.forEach(stage => {
-          dummyData.push({
-            stage,
-            segmen: segment,
-            intervalDays: Math.floor(Math.random() * 300) + 30 // Random 30-330 hari
-          });
-        });
-      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
       
-      setData({ success: true, data: dummyData });
+      const result = await response.json();
+      setData(result);
     } catch (err) {
       setError('Terjadi kesalahan saat mengambil data');
       console.error('Error fetching data:', err);
@@ -85,20 +98,25 @@ const TransitionSpeedAnalysis: React.FC = () => {
   }, []);
 
   const chartData = useMemo(() => {
-    if (!data?.data) return null;
+    if (!data?.data?.data || !data?.data?.segments) return null;
 
-    // Buat dataset untuk setiap stage
-    const datasets = stages.map(stage => {
-      const stageData = segments.map(segment => {
-        const segmentStageData = data.data.find(d => d.segmen === segment && d.stage === stage);
-        return segmentStageData?.intervalDays || 0;
+    const segments = data.data.segments;
+    const segmentData = data.data.data;
+    const transitions = data.data.transitions || ['Introduction → Growth', 'Growth → Maturity', 'Maturity → Decline'];
+
+    // Buat dataset untuk setiap transition
+    const datasets = transitions.map(transition => {
+      const transitionData = segments.map(segment => {
+        const segmentTransitions = segmentData[segment] || [];
+        const transitionItem = segmentTransitions.find(t => t.transition === transition);
+        return transitionItem?.actualDuration || 0;
       });
       
-      const baseColor = stageColors[stage as keyof typeof stageColors] || '#6B7280';
+      const baseColor = transitionColors[transition as keyof typeof transitionColors] || '#6B7280';
       
       return {
-        label: stage,
-        data: stageData,
+        label: transition,
+        data: transitionData,
         backgroundColor: baseColor + '80',
         borderColor: baseColor,
         borderWidth: 2,
@@ -133,22 +151,10 @@ const TransitionSpeedAnalysis: React.FC = () => {
             padding: 20,
             font: {
               size: 13,
-              weight: 600 // Changed from "600" to 600 (number)
+              weight: 600
             },
             boxWidth: 12,
             boxHeight: 12
-          }
-        },
-        title: {
-          display: true,
-          text: 'Transition Speed Analysis',
-          color: isDarkMode ? '#F3F4F6' : '#1F2937',
-          font: {
-            size: 20,
-            weight: 'bold' as const
-          },
-          padding: {
-            bottom: 30
           }
         },
         tooltip: {
@@ -173,7 +179,7 @@ const TransitionSpeedAnalysis: React.FC = () => {
             },
             label: (context: any) => {
               const value = context.parsed.y;
-              return `${context.dataset.label}: ${value} hari`;
+              return `${context.dataset.label}: ${value} bulan`;
             }
           }
         }
@@ -188,7 +194,7 @@ const TransitionSpeedAnalysis: React.FC = () => {
             color: isDarkMode ? '#9CA3AF' : '#6B7280',
             font: {
               size: 12,
-              weight: 600 // Changed from "600" to 600 (number)
+              weight: 600
             },
             padding: 8,
             maxRotation: 45,
@@ -200,7 +206,7 @@ const TransitionSpeedAnalysis: React.FC = () => {
             color: isDarkMode ? '#D1D5DB' : '#4B5563',
             font: {
               size: 14,
-              weight: 600 // Changed from "600" to 600 (number)
+              weight: 600
             },
             padding: 16
           }
@@ -215,26 +221,25 @@ const TransitionSpeedAnalysis: React.FC = () => {
             color: isDarkMode ? '#9CA3AF' : '#6B7280',
             font: {
               size: 12,
-              weight: 500 // Changed from "500" to 500 (number)
+              weight: 500
             },
             padding: 8,
             callback: function(value: any) {
-              return value + ' hari';
+              return value + ' bulan';
             }
           },
           title: {
             display: true,
-            text: 'Interval (Hari)',
+            text: 'Durasi (Bulan)',
             color: isDarkMode ? '#D1D5DB' : '#4B5563',
             font: {
               size: 14,
-              weight: 600 // Changed from "600" to 600 (number)
+              weight: 600
             },
             padding: 16
           }
         }
       },
-      // Konfigurasi untuk grouped bar chart
       datasets: {
         bar: {
           categoryPercentage: 0.8,
@@ -246,10 +251,12 @@ const TransitionSpeedAnalysis: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-6"></div>
-          <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">Memuat data analisis...</p>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-6"></div>
+            <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">Memuat data analisis...</p>
+          </div>
         </div>
       </div>
     );
@@ -257,31 +264,31 @@ const TransitionSpeedAnalysis: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-6">⚠️</div>
-          <p className="text-red-500 mb-6 font-semibold text-lg">{error}</p>
-          <button 
-            onClick={fetchData}
-            className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-          >
-            Coba Lagi
-          </button>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-6">⚠️</div>
+            <p className="text-red-500 mb-6 font-semibold text-lg">{error}</p>
+            <button 
+              onClick={fetchData}
+              className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              Coba Lagi
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full space-y-6">
-      {/* Chart Container */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-        <div className="h-[600px]">
-          {chartData && (
-            <Bar data={chartData} options={chartOptions} />
-          )}
-        </div>
-      </div>
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+      <TransitionSpeedAnalysisHeader />
+      
+      <TransitionSpeedAnalysisChart
+        chartData={chartData}
+        chartOptions={chartOptions}
+      />
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import ProductDistribution from "@/components/charts/lifecycle/productdistribution/ProductDistribution";
 import TransitionMatrix from "@/components/charts/lifecycle/matrix/TransitionMatrix";
 import TransitionSpeedAnalysis from "@/components/charts/lifecycle/speedanalis/TransitionSpeedAnalysis";
-import TransitionPredictions from "@/components/charts/lifecycle/TransitionPredictions";
+import TransitionPredictions from "@/components/charts/lifecycle/prediction/TransitionPredictions";
 import LifecycleTimeline from "@/components/charts/lifecycle/timeline/LifecycleTimeline";
 import React from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -134,40 +134,36 @@ export default function LifeCyclePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Product Distribution */}
             <div className="w-full">
-              <div className="h-[480px] w-full">
+              <div className="h-[550px] w-full">
                 <ProductDistribution key={`product-${windowSize.width}`} />
               </div>
             </div>
-            
-            {/* Transition Matrix */}
+            {/* Speed Analysis */}
             <div className="w-full">
-              <div className="h-[480px] w-full">
-                <TransitionMatrix key={`matrix-${windowSize.width}`} />
+              <div className="h-[550px] w-full">
+                <TransitionSpeedAnalysis key={`speed-${windowSize.width}`} />
               </div>
+            </div>
+          </div>
+
+          {/* Transition Matrix */}
+          <div className="w-full">
+            <div className="h-[480px] w-full">
+              <TransitionMatrix key={`matrix-${windowSize.width}`} />
             </div>
           </div>
 
           {/* Middle Row - Lifecycle Timeline (Full Width) - Reduced Height */}
-          <div className="w-full mt-10 mb-20">
-            <div className="h-[360px] w-full">
+          <div className="w-full">
+            <div className="h-[530px] w-full">
               <LifecycleTimeline key={`timeline-${windowSize.width}`} />
             </div>
           </div>
-
-          {/* Bottom Row - Speed Analysis & Predictions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6   mt-10 mb-10">
-            {/* Speed Analysis */}
-            <div className="w-full">
-              <div className="h-[650px] w-full">
-                <TransitionSpeedAnalysis key={`speed-${windowSize.width}`} />
-              </div>
-            </div>
-            
-            {/* Predictions */}
-            <div className="w-full">
-              <div className="h-[650px] w-full">
-                <TransitionPredictions key={`predictions-${windowSize.width}`} />
-              </div>
+        
+          {/* Predictions */}
+          <div className="w-full">
+            <div className="h-[650px] w-full">
+              <TransitionPredictions key={`predictions-${windowSize.width}`} />
             </div>
           </div>
         </div>

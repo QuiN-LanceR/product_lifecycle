@@ -63,6 +63,9 @@ import ProductDarkIcon from "./productdark.svg";
 import ReportsDarkIcon from "./reportsdark.svg";
 import UsersDarkIcon from "./usersdark.svg";
 import LogoutDarkIcon from "./logoutdark.svg";
+import PDFLight from "./pdf-light.svg";
+import PDFDark from "./pdf-dark.svg";
+import ExcelIcon from "./excel.svg";
 
 export {
   DownloadIcon,
@@ -130,4 +133,7 @@ export {
   ReportsDarkIcon,
   UsersDarkIcon,
   LogoutDarkIcon,
+  PDFLight,
+  PDFDark,
+  ExcelIcon,
 };

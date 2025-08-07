@@ -104,8 +104,8 @@ export async function POST(request: NextRequest) {
       if (value === 0) return '#f3f4f6'; // bg-gray-100
       if (value <= 2) return '#ecfeff'; // bg-cyan-100
       if (value <= 5) return '#cffafe'; // bg-cyan-200
-      if (value <= 9) return '#a7f3d0'; // bg-cyan-300
-      return '#06b6d4'; // bg-cyan-500
+      if (value <= 9) return '#67e8f9'; // bg-cyan-300
+      return '#22d3ee'; // bg-cyan-400
     };
     
     // Fungsi untuk mendapatkan warna teks berdasarkan nilai
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       if (value <= 5) return '#374151'; // text-gray-700
       return '#ffffff'; // text-white
     };
-    
+
     // Generate HTML untuk PDF
     const htmlContent = `
     <!DOCTYPE html>
@@ -123,190 +123,291 @@ export async function POST(request: NextRequest) {
         <meta charset="utf-8">
         <title>Transition Matrix Report</title>
         <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                margin: 0;
-                padding: 20px;
                 background-color: #ffffff;
                 color: #333;
+                line-height: 1.6;
+                padding: 20px;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
             }
             .header {
                 text-align: center;
-                margin-bottom: 30px;
-                border-bottom: 2px solid #e5e7eb;
-                padding-bottom: 20px;
+                margin-bottom: 40px;
+                padding: 30px;
+                background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+                border-radius: 16px;
+                border: 1px solid #e2e8f0;
             }
             .header h1 {
-                color: #1f2937;
-                font-size: 28px;
-                margin: 0 0 10px 0;
-                font-weight: 600;
+                color: #1e293b;
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 8px;
             }
-            .header p {
-                color: #6b7280;
-                font-size: 14px;
-                margin: 5px 0;
-            }
-            .filter-info {
-                background-color: #f9fafb;
-                border: 1px solid #e5e7eb;
-                border-radius: 8px;
-                padding: 15px;
-                margin-bottom: 25px;
-            }
-            .filter-info h3 {
-                margin: 0 0 10px 0;
-                color: #374151;
+            .header .subtitle {
+                color: #64748b;
                 font-size: 16px;
+                margin-bottom: 12px;
+            }
+            .header .timestamp {
+                color: #94a3b8;
+                font-size: 14px;
+            }
+            .filter-section {
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+            .filter-section h3 {
+                color: #374151;
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 12px;
             }
             .filter-item {
                 display: inline-block;
-                margin-right: 20px;
+                margin-right: 24px;
                 font-size: 14px;
                 color: #6b7280;
             }
             .filter-item strong {
                 color: #374151;
+                font-weight: 600;
             }
-            .matrix-container {
-                overflow-x: auto;
-                margin-bottom: 25px;
+            .matrix-wrapper {
+                background-color: #ffffff;
+                border-radius: 16px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e5e7eb;
+                overflow: hidden;
+                margin-bottom: 30px;
             }
             .matrix-table {
                 width: 100%;
                 border-collapse: collapse;
-                background-color: white;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                border-radius: 8px;
-                overflow: hidden;
             }
             .matrix-table th {
-                background-color: #f3f4f6;
+                background-color: #f9fafb;
                 color: #374151;
                 font-weight: 600;
-                padding: 12px 8px;
+                padding: 16px 12px;
                 text-align: center;
                 border-bottom: 2px solid #e5e7eb;
-                font-size: 12px;
+                font-size: 14px;
             }
             .matrix-table th:first-child {
                 text-align: left;
-                background-color: #f9fafb;
+                background-color: #f3f4f6;
+                border-right: 1px solid #e5e7eb;
             }
             .matrix-table td {
-                padding: 4px;
+                padding: 8px;
                 text-align: center;
                 border-bottom: 1px solid #f3f4f6;
             }
             .matrix-table td:first-child {
                 text-align: left;
-                padding: 12px 8px;
-                font-weight: 500;
+                padding: 16px 12px;
+                font-weight: 600;
                 color: #374151;
                 background-color: #f9fafb;
                 border-right: 1px solid #e5e7eb;
-                font-size: 12px;
+                font-size: 14px;
             }
             .matrix-cell {
-                width: 60px;
+                width: 160px;
                 height: 40px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 12px;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 14px;
                 margin: 0 auto;
                 border: 1px solid #e5e7eb;
+                transition: all 0.2s ease;
             }
-            .legend {
+            .legend-section {
+                background-color: #f8fafc;
+                border-radius: 12px;
+                padding: 20px;
+                text-align: center;
+                border: 1px solid #e2e8f0;
+            }
+            .legend-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 16px;
+            }
+            .legend-container {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 10px;
-                margin-top: 20px;
-                padding: 15px;
-                background-color: #f9fafb;
-                border-radius: 8px;
+                gap: 8px;
             }
             .legend-item {
-                width: 20px;
-                height: 20px;
-                border: 1px solid #e5e7eb;
-                border-radius: 3px;
+                width: 24px;
+                height: 24px;
+                border: 1px solid #d1d5db;
+                border-radius: 4px;
             }
             .legend-label {
                 font-size: 12px;
                 color: #6b7280;
-                margin: 0 5px;
+                font-weight: 500;
+            }
+            .summary-section {
+                margin-top: 30px;
+                padding: 20px;
+                background-color: #f8fafc;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+            }
+            .summary-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 12px;
+            }
+            .summary-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 16px;
+            }
+            .stat-item {
+                background-color: #ffffff;
+                padding: 16px;
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+                text-align: center;
+            }
+            .stat-value {
+                font-size: 24px;
+                font-weight: 700;
+                color: #1e293b;
+            }
+            .stat-label {
+                font-size: 14px;
+                color: #64748b;
+                margin-top: 4px;
             }
             .footer {
                 text-align: center;
-                margin-top: 30px;
+                margin-top: 40px;
                 padding-top: 20px;
                 border-top: 1px solid #e5e7eb;
                 color: #6b7280;
                 font-size: 12px;
             }
             @media print {
-                body { margin: 0; }
+                body { margin: 0; padding: 15px; }
                 .header { page-break-after: avoid; }
-                .matrix-table { page-break-inside: avoid; }
+                .matrix-wrapper { page-break-inside: avoid; }
             }
         </style>
     </head>
     <body>
-        <div class="header">
-            <h1>Transition Matrix Report</h1>
-            <p>Visualization of product transitions between lifecycle stages vs segmentation</p>
-            <p>Generated on ${new Date().toLocaleString('id-ID')}</p>
-        </div>
-        
-        <div class="filter-info">
-            <h3>Filter Information</h3>
-            <div class="filter-item"><strong>Segment:</strong> ${selectedSegment}</div>
-            <div class="filter-item"><strong>Stage:</strong> ${selectedStage}</div>
-        </div>
-        
-        <div class="matrix-container">
-            <table class="matrix-table">
-                <thead>
-                    <tr>
-                        <th>Stage / Segment</th>
-                        ${segments.map(segment => `<th>${segment}</th>`).join('')}
-                    </tr>
-                </thead>
-                <tbody>
-                    ${stages.map((stage, stageIndex) => `
+        <div class="container">
+            <div class="header">
+                <h1>Transition Matrix Report</h1>
+                <p class="subtitle">Visualization of product transitions between lifecycle stages vs segmentation</p>
+                <p class="timestamp">Generated on ${new Date().toLocaleString('id-ID', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</p>
+            </div>
+            
+            <div class="filter-section">
+                <h3>Filter Information</h3>
+                <div class="filter-item"><strong>Segment:</strong> ${selectedSegment}</div>
+                <div class="filter-item"><strong>Stage:</strong> ${selectedStage}</div>
+            </div>
+            
+            <div class="matrix-wrapper">
+                <table class="matrix-table">
+                    <thead>
                         <tr>
-                            <td>${stage}</td>
-                            ${segments.map((segment, segmentIndex) => {
-                              const value = matrixData[stageIndex][segmentIndex];
-                              const bgColor = getIntensityColor(value);
-                              const textColor = getTextColor(value);
-                              return `
-                                <td>
-                                    <div class="matrix-cell" style="background-color: ${bgColor}; color: ${textColor};">
-                                        ${value}
-                                    </div>
-                                </td>
-                              `;
-                            }).join('')}
+                            <th>Stage / Segment</th>
+                            ${segments.map(segment => `<th>${segment}</th>`).join('')}
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="legend">
-            <span class="legend-label">0</span>
-            <div class="legend-item" style="background-color: #f3f4f6;"></div>
-            <div class="legend-item" style="background-color: #ecfeff;"></div>
-            <div class="legend-item" style="background-color: #cffafe;"></div>
-            <div class="legend-item" style="background-color: #a7f3d0;"></div>
-            <div class="legend-item" style="background-color: #67e8f9;"></div>
-            <div class="legend-item" style="background-color: #06b6d4;"></div>
-            <span class="legend-label">9+</span>
+                    </thead>
+                    <tbody>
+                        ${stages.map((stage, stageIndex) => `
+                            <tr>
+                                <td>${stage}</td>
+                                ${segments.map((segment, segmentIndex) => {
+                                  const value = matrixData[stageIndex][segmentIndex];
+                                  const bgColor = getIntensityColor(value);
+                                  const textColor = getTextColor(value);
+                                  return `
+                                    <td>
+                                        <div class="matrix-cell" style="background-color: ${bgColor}; color: ${textColor};">
+                                            ${value}
+                                        </div>
+                                    </td>
+                                  `;
+                                }).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="legend-section">
+                <div class="legend-title">Color Scale Legend</div>
+                <div class="legend-container">
+                    <span class="legend-label">0</span>
+                    <div class="legend-item" style="background-color: #f3f4f6;"></div>
+                    <div class="legend-item" style="background-color: #ecfeff;"></div>
+                    <div class="legend-item" style="background-color: #cffafe;"></div>
+                    <div class="legend-item" style="background-color: #67e8f9;"></div>
+                    <div class="legend-item" style="background-color: #22d3ee;"></div>
+                    <span class="legend-label">9+</span>
+                </div>
+            </div>
+            
+            <div class="summary-section">
+                <div class="summary-title">Summary Statistics</div>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">${matrixData.flat().reduce((sum, val) => sum + val, 0)}</div>
+                        <div class="stat-label">Total Products</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${stages.length}</div>
+                        <div class="stat-label">Lifecycle Stages</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${segments.length}</div>
+                        <div class="stat-label">Market Segments</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${matrixData.flat().filter(val => val > 0).length}</div>
+                        <div class="stat-label">Active Combinations</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>Product Lifecycle Management System - Transition Matrix Report</p>
+                <p>This report shows the distribution of products across different lifecycle stages and market segments.</p>
+            </div>
         </div>
     </body>
     </html>

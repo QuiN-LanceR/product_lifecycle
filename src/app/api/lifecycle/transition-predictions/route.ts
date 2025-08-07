@@ -5,8 +5,8 @@ export async function GET() {
   const client = await getPool().connect();
   try {
     // Query untuk mendapatkan data stages dan segments
-    const stagesQuery = `SELECT stage FROM public.tbl_stage ORDER BY stage`;
-    const segmentsQuery = `SELECT segmen FROM public.tbl_segmen ORDER BY segmen`;
+    const stagesQuery = `SELECT id, stage FROM public.tbl_stage ORDER BY stage`;
+    const segmentsQuery = `SELECT id, segmen FROM public.tbl_segmen ORDER BY segmen`;
     
     const [stagesResult, segmentsResult] = await Promise.all([
       client.query(stagesQuery),
@@ -16,54 +16,100 @@ export async function GET() {
     const stages = stagesResult.rows.map(row => row.stage);
     const segments = segmentsResult.rows.map(row => row.segmen);
 
-    // Query untuk analisis transisi berdasarkan data historis
-    // Ini adalah simulasi prediksi berdasarkan pola yang ada
+    // Query untuk analisis prediksi transisi berdasarkan data historis nyata
     const transitionQuery = `
-        WITH transition_patterns AS (
+        WITH historical_transitions AS (
+            -- Mengambil data transisi historis dari tbl_stage_histori
             SELECT 
-                st1.stage as from_stage,
-                st2.stage as to_stage,
+                sp.stage as from_stage,
+                sn.stage as to_stage,
                 seg.segmen as segment,
-                COUNT(*) as transition_count
-            FROM public.tbl_produk p1
-            JOIN public.tbl_stage st1 ON p1.id_stage = st1.id
-            JOIN public.tbl_segmen seg ON p1.id_segmen = seg.id
-            CROSS JOIN public.tbl_stage st2
-            WHERE st1.id != st2.id
-            GROUP BY st1.stage, st2.stage, seg.segmen
+                sh.tanggal_perubahan,
+                sh.created_at,
+                p.id as product_id,
+                -- Menghitung durasi transisi dalam hari
+                EXTRACT(EPOCH FROM (
+                    sh.tanggal_perubahan - 
+                    LAG(sh.tanggal_perubahan) OVER (
+                        PARTITION BY p.id ORDER BY sh.created_at
+                    )
+                )) / 86400 as transition_days
+            FROM public.tbl_stage_histori sh
+            JOIN public.tbl_produk p ON sh.id_produk = p.id
+            JOIN public.tbl_segmen seg ON p.id_segmen = seg.id
+            LEFT JOIN public.tbl_stage sp ON sh.stage_previous = sp.id
+            LEFT JOIN public.tbl_stage sn ON sh.stage_now = sn.id
+            WHERE sh.stage_previous IS NOT NULL 
+                AND sh.stage_now IS NOT NULL
+                AND sh.tanggal_perubahan IS NOT NULL
         ),
-        total_by_stage_segment AS (
+        transition_patterns AS (
+            -- Menghitung pola transisi dan probabilitas
+            SELECT 
+                from_stage,
+                to_stage,
+                segment,
+                COUNT(*) as transition_count,
+                ROUND(AVG(transition_days)::numeric, 0) as avg_transition_days,
+                ROUND(STDDEV(transition_days)::numeric, 0) as stddev_days,
+                MIN(transition_days) as min_days,
+                MAX(transition_days) as max_days
+            FROM historical_transitions
+            WHERE transition_days > 0 AND transition_days < 1000 -- Filter outliers
+            GROUP BY from_stage, to_stage, segment
+            HAVING COUNT(*) >= 2 -- Minimal 2 data untuk prediksi
+        ),
+        current_stage_counts AS (
+            -- Menghitung jumlah produk di setiap stage per segment
             SELECT 
                 st.stage,
-                seg.segmen,
-                COUNT(*) as total_products
+                seg.segmen as segment,
+                COUNT(*) as current_count
             FROM public.tbl_produk p
             JOIN public.tbl_stage st ON p.id_stage = st.id
             JOIN public.tbl_segmen seg ON p.id_segmen = seg.id
             GROUP BY st.stage, seg.segmen
+        ),
+        total_historical_transitions AS (
+            -- Total transisi per stage asal dan segment
+            SELECT 
+                from_stage,
+                segment,
+                SUM(transition_count) as total_from_stage
+            FROM transition_patterns
+            GROUP BY from_stage, segment
         )
         SELECT 
             tp.from_stage,
             tp.to_stage,
             tp.segment,
-            CASE 
-                WHEN tbs.total_products > 0 THEN 
-                    ROUND(CAST(tp.transition_count AS NUMERIC) / CAST(tbs.total_products AS NUMERIC), 2)
-                ELSE 0
-            END as probability,
-            -- Estimasi hari berdasarkan pola transisi
-            CASE 
-                WHEN tp.to_stage = 'Growth' THEN 30 + FLOOR(RANDOM() * 60)::int
-                WHEN tp.to_stage = 'Maturity' THEN 90 + FLOOR(RANDOM() * 120)::int
-                WHEN tp.to_stage = 'Decline' THEN 180 + FLOOR(RANDOM() * 180)::int
-                ELSE 45 + FLOOR(RANDOM() * 90)::int
-            END as expected_days
+            -- Menghitung probabilitas berdasarkan data historis
+            ROUND(
+                CASE 
+                    WHEN tht.total_from_stage > 0 THEN 
+                        CAST(tp.transition_count AS NUMERIC) / CAST(tht.total_from_stage AS NUMERIC)
+                    ELSE 0
+                END, 3
+            ) as probability,
+            -- Estimasi hari berdasarkan rata-rata historis
+            COALESCE(tp.avg_transition_days, 60)::int as expected_days,
+            tp.transition_count as historical_count,
+            COALESCE(csc.current_count, 0) as current_products_in_stage,
+            tp.min_days::int as min_expected_days,
+            tp.max_days::int as max_expected_days,
+            tp.stddev_days::int as days_variance
         FROM transition_patterns tp
-        LEFT JOIN total_by_stage_segment tbs 
-            ON tp.from_stage = tbs.stage AND tp.segment = tbs.segmen
+        LEFT JOIN total_historical_transitions tht 
+            ON tp.from_stage = tht.from_stage AND tp.segment = tht.segment
+        LEFT JOIN current_stage_counts csc 
+            ON tp.from_stage = csc.stage AND tp.segment = csc.segment
         WHERE tp.transition_count > 0
-        ORDER BY probability DESC, tp.from_stage, tp.to_stage
-        LIMIT 20
+        ORDER BY 
+            probability DESC, 
+            current_products_in_stage DESC,
+            tp.from_stage, 
+            tp.to_stage
+        LIMIT 25
     `;
 
     const transitionResult = await client.query(transitionQuery);
@@ -74,55 +120,65 @@ export async function GET() {
       toStage: row.to_stage,
       segment: row.segment,
       probability: parseFloat(row.probability) || 0,
-      expectedDays: parseInt(row.expected_days, 10)
+      expectedDays: parseInt(row.expected_days, 10),
+      historicalCount: parseInt(row.historical_count, 10),
+      currentProductsInStage: parseInt(row.current_products_in_stage, 10),
+      minExpectedDays: parseInt(row.min_expected_days, 10) || null,
+      maxExpectedDays: parseInt(row.max_expected_days, 10) || null,
+      daysVariance: parseInt(row.days_variance, 10) || null
     }));
 
-    // Jika tidak ada data, berikan data simulasi
+    // Jika tidak ada data historis, berikan prediksi berdasarkan produk saat ini
     if (predictions.length === 0) {
-      predictions = [
-        {
-          fromStage: 'Introduction',
-          toStage: 'Growth',
-          segment: 'B2B Perusahaan',
-          probability: 0.85,
-          expectedDays: 45
-        },
-        {
-          fromStage: 'Growth',
-          toStage: 'Maturity',
-          segment: 'B2B Perusahaan',
-          probability: 0.75,
-          expectedDays: 120
-        },
-        {
-          fromStage: 'Introduction',
-          toStage: 'Growth',
-          segment: 'Transmisi',
-          probability: 0.70,
-          expectedDays: 60
-        },
-        {
-          fromStage: 'Maturity',
-          toStage: 'Decline',
-          segment: 'Distribusi',
-          probability: 0.65,
-          expectedDays: 200
-        },
-        {
-          fromStage: 'Growth',
-          toStage: 'Maturity',
-          segment: 'Korporat',
-          probability: 0.80,
-          expectedDays: 90
-        },
-        {
-          fromStage: 'Introduction',
-          toStage: 'Decline',
-          segment: 'Pelayanan Pelanggan',
-          probability: 0.25,
-          expectedDays: 30
-        }
-      ];
+      const fallbackQuery = `
+        WITH current_products AS (
+            SELECT 
+                st.stage as from_stage,
+                seg.segmen as segment,
+                COUNT(*) as product_count
+            FROM public.tbl_produk p
+            JOIN public.tbl_stage st ON p.id_stage = st.id
+            JOIN public.tbl_segmen seg ON p.id_segmen = seg.id
+            GROUP BY st.stage, seg.segmen
+        ),
+        stage_sequence AS (
+            SELECT 
+                'Introduction' as from_stage, 'Growth' as to_stage, 45 as expected_days
+            UNION ALL
+            SELECT 'Growth', 'Maturity', 90
+            UNION ALL
+            SELECT 'Maturity', 'Decline', 180
+            UNION ALL
+            SELECT 'Introduction', 'Decline', 30
+        )
+        SELECT 
+            ss.from_stage,
+            ss.to_stage,
+            cp.segment,
+            0.5 as probability,
+            ss.expected_days,
+            0 as historical_count,
+            cp.product_count as current_products_in_stage
+        FROM stage_sequence ss
+        CROSS JOIN (
+            SELECT DISTINCT segment FROM current_products WHERE product_count > 0
+        ) cp
+        ORDER BY cp.segment, ss.from_stage
+      `;
+      
+      const fallbackResult = await client.query(fallbackQuery);
+      predictions = fallbackResult.rows.map(row => ({
+        fromStage: row.from_stage,
+        toStage: row.to_stage,
+        segment: row.segment,
+        probability: parseFloat(row.probability),
+        expectedDays: parseInt(row.expected_days, 10),
+        historicalCount: parseInt(row.historical_count, 10),
+        currentProductsInStage: parseInt(row.current_products_in_stage, 10),
+        minExpectedDays: null,
+        maxExpectedDays: null,
+        daysVariance: null
+      }));
     }
 
     return NextResponse.json({
@@ -130,7 +186,12 @@ export async function GET() {
       data: {
         predictions,
         stages,
-        segments
+        segments,
+        metadata: {
+          totalPredictions: predictions.length,
+          basedOnHistoricalData: predictions.some(p => p.historicalCount > 0),
+          lastUpdated: new Date().toISOString()
+        }
       }
     });
 

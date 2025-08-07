@@ -1,78 +1,154 @@
 import React, { useState } from 'react';
-import { MoreDotIcon } from '../../../../icons/index';
-import { DropdownItem } from '@/components/ui/dropdown/DropdownItem';
-import { Dropdown } from '@/components/ui/dropdown/Dropdown';
+import { ChevronDownIcon, PDFLight, PDFDark, ExcelIcon } from '../../../../icons';
 
-const ProductDistributionHeader = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface ProductDistributionHeaderProps {
+  totalProducts: number;
+}
+
+const ProductDistributionHeader: React.FC<ProductDistributionHeaderProps> = ({ totalProducts }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportType, setExportType] = useState<'excel' | 'pdf' | null>(null);
+  const [isDark, setIsDark] = useState(false);
 
-  const toggleDropdown = () => setIsOpen(!isOpen);
-  const closeDropdown = () => setIsOpen(false);
+  // Detect dark mode
+  React.useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
 
-  const handleExport = async () => {
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleExportData = async () => {
     try {
       setIsExporting(true);
-      closeDropdown();
-      
+      setExportType('excel');
       const response = await fetch('/api/dashboard/export');
       
       if (!response.ok) {
         throw new Error('Export failed');
       }
       
-      // Get the blob from response
       const blob = await response.blob();
-      
-      // Create download link
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Data_Produk_${new Date().toISOString().split('T')[0]}.xlsx`;
-      
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      document.body.removeChild(link);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `product-distribution-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
       window.URL.revokeObjectURL(url);
-      
+      document.body.removeChild(a);
     } catch (error) {
-      console.error('Export error:', error);
-      alert('Gagal mengexport data. Silakan coba lagi.');
+      console.error('Export failed:', error);
     } finally {
       setIsExporting(false);
+      setExportType(null);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExporting(true);
+      setExportType('pdf');
+      const response = await fetch('/api/dashboard/export-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('PDF export failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `product-distribution-${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('PDF export failed:', error);
+    } finally {
+      setIsExporting(false);
+      setExportType(null);
+      setIsDropdownOpen(false);
     }
   };
 
   return (
     <div className="flex items-center justify-between mb-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
           Product Distribution
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Distribusi produk berdasarkan tahap siklus hidup 
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          Total: {totalProducts} products
         </p>
       </div>
-      <div className="flex items-center space-x-4">
-        <Dropdown
-          isOpen={isOpen}
-          onClick={toggleDropdown}
-          onClose={closeDropdown}
-          trigger={
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-              <MoreDotIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            </button>
-          }
+      
+      <div className="relative">
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          disabled={isExporting}
+          className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <DropdownItem 
-            onClick={handleExport}
-          >
-            {isExporting ? 'Mengexport...' : 'Export'}
-          </DropdownItem>
-        </Dropdown>
+          {isExporting ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Exporting {exportType === 'excel' ? 'Excel' : 'PDF'}...
+            </>
+          ) : (
+            <>
+              Export Data
+              <ChevronDownIcon className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </button>
+        
+        {isDropdownOpen && !isExporting && (
+          <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10">
+            <div className="py-1" role="menu">
+              <button
+                onClick={handleExportData}
+                className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                role="menuitem"
+              >
+                <ExcelIcon className="mr-3 h-4 w-4 text-green-600" />
+                Export Excel
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                role="menuitem"
+              >
+                {isDark ? (
+                  <PDFDark className="mr-3 h-4 w-4" />
+                ) : (
+                  <PDFLight className="mr-3 h-4 w-4" />
+                )}
+                Export PDF
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
